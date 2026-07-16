@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 import { createClient } from "@/lib/supabase/server";
+import { getNegocioActual } from "@/lib/negocio";
 import ReservationRow from "@/components/ReservationRow";
 import ReservationModal from "@/components/ReservationModal";
 import GroupLabel from "@/components/GroupLabel";
@@ -44,23 +45,7 @@ function formatearFecha(fechaISO) {
 export default async function DashboardPage() {
   const supabase = createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const { data: usuarioNegocio } = await supabase
-    .from("usuarios_negocio")
-    .select("negocio_id")
-    .eq("user_id", user?.id)
-    .single();
-
-  const negocioId = usuarioNegocio?.negocio_id;
-
-  const { data: negocio } = await supabase
-    .from("negocios")
-    .select("nombre, config_capacidad")
-    .eq("id", negocioId)
-    .single();
+  const { negocioId, negocio } = await getNegocioActual(supabase);
 
   const modo = negocio?.config_capacidad?.modo ?? null;
   const turnos = negocio?.config_capacidad?.turnos ?? [];

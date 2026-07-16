@@ -1,26 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
+import { getNegocioActual } from "@/lib/negocio";
 import AjustesForm from "@/components/AjustesForm";
 
 export default async function AjustesPage() {
   const supabase = createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const { data: usuarioNegocio } = await supabase
-    .from("usuarios_negocio")
-    .select("negocio_id")
-    .eq("user_id", user?.id)
-    .single();
-
-  const negocioId = usuarioNegocio?.negocio_id;
-
-  const { data: negocio } = await supabase
-    .from("negocios")
-    .select("nombre, config_capacidad")
-    .eq("id", negocioId)
-    .single();
+  const { negocioId, negocio } = await getNegocioActual(supabase);
 
   const { data: recursos } = await supabase
     .from("recursos")

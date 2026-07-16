@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { getNegocioActual } from "@/lib/negocio";
+import { cambiarNegocio } from "@/lib/actions/negocio";
 import SignOutButton from "@/components/SignOutButton";
 
 const ICONOS_TIPO = {
@@ -11,18 +13,8 @@ const ICONOS_TIPO = {
 
 export default async function DashboardLayout({ children }) {
   const supabase = createClient();
+  const { negocio, rol, negocios } = await getNegocioActual(supabase);
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const { data: usuarioNegocio } = await supabase
-    .from("usuarios_negocio")
-    .select("rol, negocios ( id, nombre, tipo_negocio )")
-    .eq("user_id", user?.id)
-    .single();
-
-  const negocio = usuarioNegocio?.negocios;
   const icono = ICONOS_TIPO[negocio?.tipo_negocio] || "📋";
 
   return (
@@ -35,10 +27,31 @@ export default async function DashboardLayout({ children }) {
               {negocio?.nombre || "Tu negocio"}
             </span>
           </div>
-          <div className="text-[11px] text-paper-100/40 mb-8 capitalize">
-            {usuarioNegocio?.rol || "encargado"}
+          <div className="text-[11px] text-paper-100/40 mb-4 capitalize">
+            {rol || "encargado"}
           </div>
-
+          {negocios.length > 1 && (
+            <form
+              action={async (formData) => {
+                "use server";
+                await cambiarNegocio(formData.get("negocioId"));
+              }}
+              className="mb-6"
+            >
+              <select
+                name="negocioId"
+                defaultValue={negocio?.id}
+                onChange={(e) => e.target.form.requestSubmit()}
+                className="w-full bg-ink-800 text-paper-0 text-xs rounded px-2 py-2 border border-ink-800"
+              >
+                {negocios.map((n) => (
+                  <option key={n.id} value={n.id}>
+                    {n.nombre}
+                  </option>
+                ))}
+              </select>
+            </form>
+          )}
           <nav className="space-y-1">
             <Link
               href="/dashboard"
