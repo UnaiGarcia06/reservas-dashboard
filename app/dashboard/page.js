@@ -1,5 +1,8 @@
+import { Fragment } from "react";
 import { createClient } from "@/lib/supabase/server";
 import ReservationRow from "@/components/ReservationRow";
+import GroupLabel from "@/components/GroupLabel";
+import { agruparPorTurno } from "@/lib/turnos";
 
 function agruparPorFecha(reservas) {
   const grupos = {};
@@ -8,6 +11,24 @@ function agruparPorFecha(reservas) {
     grupos[r.fecha].push(r);
   }
   return grupos;
+}
+
+function agruparPorRecurso(reservas, recursos) {
+  const grupos = {};
+  const orden = (recursos || []).map((rec) => rec.nombre);
+
+  for (const r of reservas) {
+    const nombre = r.recurso_nombre || "Sin recurso asignado";
+    grupos[nombre] = grupos[nombre] || [];
+    grupos[nombre].push(r);
+  }
+
+  const clavesOrdenadas = [
+    ...orden.filter((nombre) => grupos[nombre]),
+    ...Object.keys(grupos).filter((nombre) => !orden.includes(nombre)),
+  ];
+
+  return clavesOrdenadas.map((nombre) => ({ nombre, reservas: grupos[nombre] }));
 }
 
 function formatearFecha(fechaISO) {
@@ -32,12 +53,34 @@ export default async function DashboardPage() {
     .eq("user_id", user?.id)
     .single();
 
+  const negocioId = usuarioNegocio?.negocio_id;
+
+  const { data: negocio } = await supabase
+    .from("negocios")
+    .select("nombre, config_capacidad")
+    .eq("id", negocioId)
+    .single();
+
+  const modo = negocio?.config_capacidad?.modo ?? null;
+  const turnos = negocio?.config_capacidad?.turnos ?? [];
+
+  const { data: recursos } = await supabase
+    .from("recursos")
+    .select("id, nombre")
+    .eq("negocio_id", negocioId)
+    .eq("activo", true);
+
+  const recursosMap = {};
+  for (const rec of recursos || []) {
+    recursosMap[rec.id] = rec.nombre;
+  }
+
   const hoy = new Date().toISOString().slice(0, 10);
 
   const { data: reservas } = await supabase
     .from("citas")
-    .select("id, nombre_cliente, telefono, fecha, hora, estado, detalles")
-    .eq("negocio_id", usuarioNegocio?.negocio_id)
+    .select("id, nombre_cliente, telefono, fecha, hora, estado, detalles, recurso_id")
+    .eq("negocio_id", negocioId)
     .neq("estado", "Cancelada")
     .gte("fecha", hoy)
     .order("fecha", { ascending: true })
@@ -46,10 +89,11 @@ export default async function DashboardPage() {
   const reservasFormateadas = (reservas || []).map((r) => ({
     ...r,
     personas: r.detalles?.personas ?? "—",
+    recurso_nombre: r.recurso_id ? recursosMap[r.recurso_id] : null,
   }));
 
-  const grupos = agruparPorFecha(reservasFormateadas);
-  const fechas = Object.keys(grupos).sort();
+  const gruposPorFecha = agruparPorFecha(reservasFormateadas);
+  const fechas = Object.keys(gruposPorFecha).sort();
 
   return (
     <div className="max-w-2xl">
@@ -66,18 +110,38 @@ export default async function DashboardPage() {
         </div>
       ) : (
         <div className="space-y-8">
-          {fechas.map((fecha) => (
-            <div key={fecha}>
-              <h2 className="text-xs uppercase tracking-wider text-ink-600 font-mono mb-2">
-                {formatearFecha(fecha)}
-              </h2>
-              <div className="bg-white rounded-lg border border-paper-200 px-4">
-                {grupos[fecha].map((reserva) => (
-                  <ReservationRow key={reserva.id} reserva={reserva} />
-                ))}
+          {fechas.map((fecha) => {
+            const reservasDelDia = gruposPorFecha[fecha];
+
+            let subgrupos = null;
+            if (modo === "turno") {
+              subgrupos = agruparPorTurno(reservasDelDia, turnos);
+            } else if (modo === "slot") {
+              subgrupos = agruparPorRecurso(reservasDelDia, recursos);
+            }
+
+            return (
+              <div key={fecha}>
+                <h2 className="text-xs uppercase tracking-wider text-ink-600 font-mono mb-2">
+                  {formatearFecha(fecha)}
+                </h2>
+                <div className="bg-white rounded-lg border border-paper-200 px-4">
+                  {subgrupos
+                    ? subgrupos.map((grupo) => (
+                        <Fragment key={grupo.nombre}>
+                          <GroupLabel>{grupo.nombre}</GroupLabel>
+                          {grupo.reservas.map((reserva) => (
+                            <ReservationRow key={reserva.id} reserva={reserva} />
+                          ))}
+                        </Fragment>
+                      ))
+                    : reservasDelDia.map((reserva) => (
+                        <ReservationRow key={reserva.id} reserva={reserva} />
+                      ))}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

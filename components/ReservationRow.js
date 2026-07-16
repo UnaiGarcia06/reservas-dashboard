@@ -9,7 +9,12 @@ export default function ReservationRow({ reserva }) {
 
       <div className="flex-1 min-w-0">
         <div className="text-sm font-medium truncate">{reserva.nombre_cliente}</div>
-        <div className="text-xs text-ink-600 font-mono">{reserva.telefono}</div>
+        <div className="text-xs text-ink-600 font-mono flex items-center gap-2">
+          <span>{reserva.telefono}</span>
+          {reserva.recurso_nombre && (
+            <span className="text-stamp-amber">· {reserva.recurso_nombre}</span>
+          )}
+        </div>
       </div>
 
       <div className="text-sm font-mono text-ink-600 w-20 text-right shrink-0">
