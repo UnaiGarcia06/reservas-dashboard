@@ -54,12 +54,19 @@ export default function AjustesForm({ negocio, recursos }) {
   const [creandoRecurso, setCreandoRecurso] = useState(false);
   const [editandoRecursoId, setEditandoRecursoId] = useState(null);
 
+  const [mensajeRecurso, setMensajeRecurso] = useState(null);
+  const [tipoNuevoRecurso, setTipoNuevoRecurso] = useState("");
+
   async function manejarCrearRecurso(formData) {
     setCreandoRecurso(true);
+    setMensajeRecurso(null);
     const resultado = await crearRecurso(formData);
     setCreandoRecurso(false);
-    if (!resultado?.error) {
+    if (resultado?.error) {
+      setMensajeRecurso(resultado.error);
+    } else {
       setNombreNuevoRecurso("");
+      setTipoNuevoRecurso("");
     }
   }
 
@@ -249,7 +256,14 @@ export default function AjustesForm({ negocio, recursos }) {
             name="nombre"
             value={nombreNuevoRecurso}
             onChange={(e) => setNombreNuevoRecurso(e.target.value)}
-            placeholder="Nuevo recurso"
+            placeholder="Nombre del recurso"
+            className="flex-1 border border-paper-200 rounded px-3 py-2 text-sm"
+          />
+          <input
+            name="tipo"
+            value={tipoNuevoRecurso}
+            onChange={(e) => setTipoNuevoRecurso(e.target.value)}
+            placeholder="Tipo (ej. silla, sala)"
             className="flex-1 border border-paper-200 rounded px-3 py-2 text-sm"
           />
           <button
@@ -260,6 +274,9 @@ export default function AjustesForm({ negocio, recursos }) {
             {creandoRecurso ? "..." : "Añadir"}
           </button>
         </form>
+        {mensajeRecurso && (
+          <p className="text-xs text-ink-600 mt-2">{mensajeRecurso}</p>
+        )}
       </section>
     </div>
   );
