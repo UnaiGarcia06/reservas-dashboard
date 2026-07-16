@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  ::selection {
+    background-color: #C0803A;
+    color: #F4F5F1;
+  }
+
+  *:focus-visible {
+    outline: 2px solid #C0803A;
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  .ledger-rule {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent 47px,
+      #DDDED6 47px,
+      #DDDED6 48px
+    );
+  }
+}
