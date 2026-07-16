@@ -1,6 +1,7 @@
 import { Fragment } from "react";
 import { createClient } from "@/lib/supabase/server";
 import ReservationRow from "@/components/ReservationRow";
+import ReservationModal from "@/components/ReservationModal";
 import GroupLabel from "@/components/GroupLabel";
 import { agruparPorTurno } from "@/lib/turnos";
 
@@ -97,7 +98,18 @@ export default async function DashboardPage() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="font-display text-2xl mb-1">Próximas reservas</h1>
+      <div className="flex items-start justify-between mb-1">
+        <h1 className="font-display text-2xl">Próximas reservas</h1>
+        <ReservationModal
+          modo={modo}
+          recursos={recursos}
+          trigger={
+            <button className="bg-ink-800 text-white rounded px-4 py-2 text-sm cursor-pointer">
+              + Nueva reserva
+            </button>
+          }
+        />
+      </div>
       <p className="text-ink-600 text-sm mb-8">
         Reservas confirmadas o pendientes desde hoy.
       </p>
@@ -131,12 +143,12 @@ export default async function DashboardPage() {
                         <Fragment key={grupo.nombre}>
                           <GroupLabel>{grupo.nombre}</GroupLabel>
                           {grupo.reservas.map((reserva) => (
-                            <ReservationRow key={reserva.id} reserva={reserva} />
+                            <ReservationRow key={reserva.id} reserva={reserva} modo={modo} recursos={recursos} />
                           ))}
                         </Fragment>
                       ))
                     : reservasDelDia.map((reserva) => (
-                        <ReservationRow key={reserva.id} reserva={reserva} />
+                        <ReservationRow key={reserva.id} reserva={reserva} modo={modo} recursos={recursos} />
                       ))}
                 </div>
               </div>

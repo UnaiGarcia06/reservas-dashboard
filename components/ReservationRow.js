@@ -1,6 +1,21 @@
-import StatusStamp from "./StatusStamp";
+"use client";
 
-export default function ReservationRow({ reserva }) {
+import { useState } from "react";
+import StatusStamp from "./StatusStamp";
+import ReservationModal from "./ReservationModal";
+import { cancelarReserva } from "@/lib/actions/reservas";
+
+export default function ReservationRow({ reserva, modo, recursos }) {
+  const [cancelando, setCancelando] = useState(false);
+  const [confirmando, setConfirmando] = useState(false);
+
+  async function manejarCancelar() {
+    setCancelando(true);
+    await cancelarReserva(reserva.id);
+    setCancelando(false);
+    setConfirmando(false);
+  }
+
   return (
     <div className="flex items-center gap-4 py-3 px-1 border-b border-paper-200 last:border-0">
       <div className="font-mono text-sm text-ink-800 w-14 shrink-0">
@@ -22,6 +37,44 @@ export default function ReservationRow({ reserva }) {
       </div>
 
       <StatusStamp estado={reserva.estado} />
+
+      <div className="flex items-center gap-2 shrink-0">
+        <ReservationModal
+          modo={modo}
+          recursos={recursos}
+          reserva={reserva}
+          trigger={
+            <button className="text-xs text-ink-600 underline cursor-pointer">
+              Editar
+            </button>
+          }
+        />
+
+        {confirmando ? (
+          <div className="flex items-center gap-1">
+            <button
+              onClick={manejarCancelar}
+              disabled={cancelando}
+              className="text-xs text-stamp-red underline cursor-pointer disabled:opacity-50"
+            >
+              {cancelando ? "..." : "Confirmar"}
+            </button>
+            <button
+              onClick={() => setConfirmando(false)}
+              className="text-xs text-ink-600 cursor-pointer"
+            >
+              No
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setConfirmando(true)}
+            className="text-xs text-stamp-red underline cursor-pointer"
+          >
+            Cancelar
+          </button>
+        )}
+      </div>
     </div>
   );
 }
