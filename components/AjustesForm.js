@@ -7,9 +7,12 @@ import {
   crearRecurso,
   actualizarRecurso,
   toggleRecursoActivo,
+  crearTipoServicio,
+  actualizarTipoServicio,
+  toggleTipoServicioActivo,
 } from "@/lib/actions/negocio";
 
-export default function AjustesForm({ negocio, recursos }) {
+export default function AjustesForm({ negocio, recursos, tiposServicio }) {
   const [nombre, setNombre] = useState(negocio?.nombre || "");
   const [guardandoNombre, setGuardandoNombre] = useState(false);
   const [mensajeNombre, setMensajeNombre] = useState(null);
@@ -79,6 +82,36 @@ export default function AjustesForm({ negocio, recursos }) {
 
   async function manejarToggleActivo(id, activoActual) {
     await toggleRecursoActivo(id, !activoActual);
+  }
+
+  const [nombreNuevoTipo, setNombreNuevoTipo] = useState("");
+  const [duracionNuevoTipo, setDuracionNuevoTipo] = useState("");
+  const [creandoTipo, setCreandoTipo] = useState(false);
+  const [mensajeTipo, setMensajeTipo] = useState(null);
+  const [editandoTipoId, setEditandoTipoId] = useState(null);
+
+  async function manejarCrearTipoServicio(formData) {
+    setCreandoTipo(true);
+    setMensajeTipo(null);
+    const resultado = await crearTipoServicio(formData);
+    setCreandoTipo(false);
+    if (resultado?.error) {
+      setMensajeTipo(resultado.error);
+    } else {
+      setNombreNuevoTipo("");
+      setDuracionNuevoTipo("");
+    }
+  }
+
+  async function manejarActualizarTipoServicio(id, formData) {
+    const resultado = await actualizarTipoServicio(id, formData);
+    if (!resultado?.error) {
+      setEditandoTipoId(null);
+    }
+  }
+
+  async function manejarToggleTipoActivo(id, activoActual) {
+    await toggleTipoServicioActivo(id, !activoActual);
   }
 
   return (
@@ -278,6 +311,108 @@ export default function AjustesForm({ negocio, recursos }) {
           <p className="text-xs text-ink-600 mt-2">{mensajeRecurso}</p>
         )}
       </section>
+
+      <section className="bg-white rounded-lg border border-paper-200 p-5">
+        <h2 className="font-display text-lg mb-4">Tipos de servicio</h2>
+        <div className="space-y-2">
+          {(tiposServicio || []).map((tipo) => (
+            <div
+              key={tipo.id}
+              className="flex items-center gap-3 border-b border-paper-200 pb-2 last:border-0"
+            >
+              {editandoTipoId === tipo.id ? (
+                <form
+                  action={(formData) =>
+                    manejarActualizarTipoServicio(tipo.id, formData)
+                  }
+                  className="flex items-center gap-2 flex-1"
+                >
+                  <input
+                    name="nombre"
+                    defaultValue={tipo.nombre}
+                    className="flex-1 border border-paper-200 rounded px-3 py-1 text-sm"
+                  />
+                  <input
+                    name="duracion_minutos"
+                    type="number"
+                    defaultValue={tipo.duracion_minutos}
+                    className="w-20 border border-paper-200 rounded px-3 py-1 text-sm"
+                  />
+                  <button
+                    type="submit"
+                    className="text-xs text-ink-800 underline cursor-pointer"
+                  >
+                    Guardar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditandoTipoId(null)}
+                    className="text-xs text-ink-600 cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                </form>
+              ) : (
+                <>
+                  <span
+                    className={`flex-1 text-sm ${
+                      tipo.activo ? "" : "text-ink-600 line-through"
+                    }`}
+                  >
+                    {tipo.nombre} · {tipo.duracion_minutos} min
+                  </span>
+                  <button
+                    onClick={() => setEditandoTipoId(tipo.id)}
+                    className="text-xs text-ink-600 underline cursor-pointer"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={() =>
+                      manejarToggleTipoActivo(tipo.id, tipo.activo)
+                    }
+                    className="text-xs text-stamp-red underline cursor-pointer"
+                  >
+                    {tipo.activo ? "Desactivar" : "Activar"}
+                  </button>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <form
+          action={manejarCrearTipoServicio}
+          className="flex items-center gap-2 mt-4 pt-3 border-t border-paper-200"
+        >
+          <input
+            name="nombre"
+            value={nombreNuevoTipo}
+            onChange={(e) => setNombreNuevoTipo(e.target.value)}
+            placeholder="Nombre del servicio"
+            className="flex-1 border border-paper-200 rounded px-3 py-2 text-sm"
+          />
+          <input
+            name="duracion_minutos"
+            type="number"
+            value={duracionNuevoTipo}
+            onChange={(e) => setDuracionNuevoTipo(e.target.value)}
+            placeholder="Min."
+            className="w-24 border border-paper-200 rounded px-3 py-2 text-sm"
+          />
+          <button
+            type="submit"
+            disabled={creandoTipo}
+            className="bg-ink-800 text-white rounded px-4 py-2 text-sm disabled:opacity-50"
+          >
+            {creandoTipo ? "..." : "Añadir"}
+          </button>
+        </form>
+        {mensajeTipo && (
+          <p className="text-xs text-ink-600 mt-2">{mensajeTipo}</p>
+        )}
+      </section>
     </div>
   );
 }
+

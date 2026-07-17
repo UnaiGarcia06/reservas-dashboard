@@ -13,13 +13,23 @@ export default async function AjustesPage() {
     .eq("negocio_id", negocioId)
     .order("nombre", { ascending: true });
 
+  const { data: tiposServicio } = await supabase
+    .from("tipos_servicio")
+    .select("id, nombre, duracion_minutos, activo")
+    .eq("negocio_id", negocioId)
+    .order("nombre", { ascending: true });
+
   return (
     <div className="max-w-2xl">
       <h1 className="font-display text-2xl mb-1">Ajustes del negocio</h1>
       <p className="text-ink-600 text-sm mb-8">
-        Datos generales, turnos y recursos.
+        Datos generales, turnos, recursos y tipos de servicio.
       </p>
-      <AjustesForm negocio={negocio} recursos={recursos || []} />
+      <AjustesForm
+        negocio={negocio}
+        recursos={recursos || []}
+        tiposServicio={tiposServicio || []}
+      />
     </div>
   );
 }
