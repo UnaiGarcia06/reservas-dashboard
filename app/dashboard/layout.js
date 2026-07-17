@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getNegocioActual } from "@/lib/negocio";
-import { cambiarNegocio } from "@/lib/actions/negocio";
 import SignOutButton from "@/components/SignOutButton";
+import SelectorNegocio from "@/components/SelectorNegocio";
 
 const ICONOS_TIPO = {
   restaurante: "🍽️",
@@ -31,26 +31,7 @@ export default async function DashboardLayout({ children }) {
             {rol || "encargado"}
           </div>
           {negocios.length > 1 && (
-            <form
-              action={async (formData) => {
-                "use server";
-                await cambiarNegocio(formData.get("negocioId"));
-              }}
-              className="mb-6"
-            >
-              <select
-                name="negocioId"
-                defaultValue={negocio?.id}
-                onChange={(e) => e.target.form.requestSubmit()}
-                className="w-full bg-ink-800 text-paper-0 text-xs rounded px-2 py-2 border border-ink-800"
-              >
-                {negocios.map((n) => (
-                  <option key={n.id} value={n.id}>
-                    {n.nombre}
-                  </option>
-                ))}
-              </select>
-            </form>
+            <SelectorNegocio negocios={negocios} negocioId={negocio?.id} />
           )}
           <nav className="space-y-1">
             <Link
