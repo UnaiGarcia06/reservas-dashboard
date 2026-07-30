@@ -17,7 +17,7 @@ export default function ReservationRow({ reserva, modo, recursos }) {
   }
 
   return (
-    <div className="flex items-center gap-4 py-3 px-3 border-b border-paper-200 last:border-0 hover:bg-paper-100 transition-colors rounded-card">
+    <div className="flex items-center gap-4 py-2 px-3 border-b border-paper-200 last:border-0 hover:bg-paper-100 transition-colors rounded-card">
       <div className="font-mono text-sm text-ink-800 w-14 shrink-0">
         {reserva.hora}
       </div>

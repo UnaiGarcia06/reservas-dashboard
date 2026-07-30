@@ -112,7 +112,7 @@ export default async function DashboardPage() {
           </p>
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-6">
           {fechas.map((fecha) => {
             const reservasDelDia = gruposPorFecha[fecha];
 
@@ -125,10 +125,10 @@ export default async function DashboardPage() {
 
             return (
               <div key={fecha}>
-                <h2 className="text-xs uppercase tracking-wider text-ink-600 font-mono mb-2">
+                <h2 className="text-xs uppercase tracking-wider text-ink-600 font-mono mb-1.5">
                   {formatearFecha(fecha)}
                 </h2>
-                <div className="bg-paper-50 rounded-panel border border-paper-200 px-4">
+                <div className="bg-paper-50 rounded-panel border border-paper-200 px-3">
                   {subgrupos
                     ? subgrupos.map((grupo) => (
                         <Fragment key={grupo.nombre}>
