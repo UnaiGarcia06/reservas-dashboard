@@ -39,8 +39,8 @@ export default function ReservationModal({
 
       {abierto && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg border border-paper-200 w-full max-w-md p-6">
-            <h2 className="font-display text-xl mb-4">
+          <div className="bg-paper-0 rounded-panel border border-paper-200 w-full max-w-md p-6 shadow-lg">
+            <h2 className="font-display text-xl mb-4 text-ink-800">
               {esEdicion ? "Editar reserva" : "Nueva reserva"}
             </h2>
 
@@ -53,7 +53,7 @@ export default function ReservationModal({
                   name="nombre_cliente"
                   defaultValue={reserva?.nombre_cliente || ""}
                   required
-                  className="w-full border border-paper-200 rounded px-3 py-2 text-sm mt-1"
+                  className="w-full border border-paper-200 rounded-card px-3 py-2 text-sm mt-1 text-ink-800 focus:outline-none focus:border-ink-600"
                 />
               </div>
 
@@ -65,7 +65,7 @@ export default function ReservationModal({
                   name="telefono"
                   defaultValue={reserva?.telefono || ""}
                   required
-                  className="w-full border border-paper-200 rounded px-3 py-2 text-sm mt-1"
+                  className="w-full border border-paper-200 rounded-card px-3 py-2 text-sm mt-1 text-ink-800 focus:outline-none focus:border-ink-600"
                 />
               </div>
 
@@ -79,7 +79,7 @@ export default function ReservationModal({
                     name="fecha"
                     defaultValue={reserva?.fecha || ""}
                     required
-                    className="w-full border border-paper-200 rounded px-3 py-2 text-sm mt-1"
+                    className="w-full border border-paper-200 rounded-card px-3 py-2 text-sm mt-1 text-ink-800 focus:outline-none focus:border-ink-600"
                   />
                 </div>
 
@@ -92,7 +92,7 @@ export default function ReservationModal({
                     name="hora"
                     defaultValue={reserva?.hora || ""}
                     required
-                    className="w-full border border-paper-200 rounded px-3 py-2 text-sm mt-1"
+                    className="w-full border border-paper-200 rounded-card px-3 py-2 text-sm mt-1 text-ink-800 focus:outline-none focus:border-ink-600"
                   />
                 </div>
               </div>
@@ -106,7 +106,7 @@ export default function ReservationModal({
                   name="personas"
                   min="1"
                   defaultValue={reserva?.personas || ""}
-                  className="w-full border border-paper-200 rounded px-3 py-2 text-sm mt-1"
+                  className="w-full border border-paper-200 rounded-card px-3 py-2 text-sm mt-1 text-ink-800 focus:outline-none focus:border-ink-600"
                 />
               </div>
 
@@ -118,7 +118,7 @@ export default function ReservationModal({
                   <select
                     name="recurso_id"
                     defaultValue={reserva?.recurso_id || ""}
-                    className="w-full border border-paper-200 rounded px-3 py-2 text-sm mt-1"
+                    className="w-full border border-paper-200 rounded-card px-3 py-2 text-sm mt-1 text-ink-800 focus:outline-none focus:border-ink-600"
                   >
                     <option value="">Sin asignar</option>
                     {(recursos || []).map((r) => (
@@ -131,21 +131,21 @@ export default function ReservationModal({
               )}
 
               {error && (
-                <p className="text-sm text-stamp-red">{error}</p>
+                <p className="text-sm text-stamp-clay">{error}</p>
               )}
 
               <div className="flex gap-2 pt-2">
                 <button
                   type="submit"
                   disabled={enviando}
-                  className="flex-1 bg-ink-800 text-white rounded px-4 py-2 text-sm disabled:opacity-50"
+                  className="flex-1 bg-ink-800 hover:bg-ink-700 text-paper-0 rounded-card px-4 py-2 text-sm disabled:opacity-50 transition-colors"
                 >
                   {enviando ? "Guardando..." : "Guardar"}
                 </button>
                 <button
                   type="button"
                   onClick={() => setAbierto(false)}
-                  className="px-4 py-2 text-sm text-ink-600"
+                  className="px-4 py-2 text-sm text-ink-600 hover:text-ink-800 transition-colors"
                 >
                   Cancelar
                 </button>

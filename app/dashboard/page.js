@@ -4,6 +4,7 @@ import { getNegocioActual } from "@/lib/negocio";
 import ReservationRow from "@/components/ReservationRow";
 import ReservationModal from "@/components/ReservationModal";
 import GroupLabel from "@/components/GroupLabel";
+import DashboardSummary from "@/components/DashboardSummary";
 import { agruparPorTurno } from "@/lib/turnos";
 
 function agruparPorFecha(reservas) {
@@ -78,29 +79,34 @@ export default async function DashboardPage() {
     recurso_nombre: r.recurso_id ? recursosMap[r.recurso_id] : null,
   }));
 
+  const reservasHoy = reservasFormateadas.filter((r) => r.fecha === hoy);
+  const proximaReserva = reservasFormateadas[0] ?? null;
+
   const gruposPorFecha = agruparPorFecha(reservasFormateadas);
   const fechas = Object.keys(gruposPorFecha).sort();
 
   return (
     <div className="max-w-2xl">
       <div className="flex items-start justify-between mb-1">
-        <h1 className="font-display text-2xl">Próximas reservas</h1>
+        <h1 className="font-display text-2xl text-ink-800">Próximas reservas</h1>
         <ReservationModal
           modo={modo}
           recursos={recursos}
           trigger={
-            <button className="bg-ink-800 text-white rounded px-4 py-2 text-sm cursor-pointer">
+            <button className="bg-ink-800 hover:bg-ink-700 text-paper-0 rounded-card px-4 py-2 text-sm cursor-pointer transition-colors">
               + Nueva reserva
             </button>
           }
         />
       </div>
-      <p className="text-ink-600 text-sm mb-8">
+      <p className="text-ink-600 text-sm mb-6">
         Reservas confirmadas o pendientes desde hoy.
       </p>
 
+      <DashboardSummary reservasHoy={reservasHoy} proximaReserva={proximaReserva} />
+
       {fechas.length === 0 ? (
-        <div className="border border-dashed border-paper-200 rounded-lg p-10 text-center">
+        <div className="border border-dashed border-paper-200 rounded-panel p-10 text-center">
           <p className="text-sm text-ink-600">
             No hay reservas próximas todavía. En cuanto entre una, aparecerá aquí.
           </p>
@@ -122,7 +128,7 @@ export default async function DashboardPage() {
                 <h2 className="text-xs uppercase tracking-wider text-ink-600 font-mono mb-2">
                   {formatearFecha(fecha)}
                 </h2>
-                <div className="bg-white rounded-lg border border-paper-200 px-4">
+                <div className="bg-paper-50 rounded-panel border border-paper-200 px-4">
                   {subgrupos
                     ? subgrupos.map((grupo) => (
                         <Fragment key={grupo.nombre}>
