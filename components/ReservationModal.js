@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { crearReserva, actualizarReserva } from "@/lib/actions/reservas";
+import { useToast } from "@/components/ToastProvider";
 
 export default function ReservationModal({
   modo,
@@ -12,6 +13,7 @@ export default function ReservationModal({
   const [abierto, setAbierto] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState(null);
+  const { mostrarToast } = useToast();
 
   const esEdicion = !!reserva;
 
@@ -27,9 +29,14 @@ export default function ReservationModal({
 
     if (resultado?.error) {
       setError(resultado.error);
+      mostrarToast(resultado.error, "error");
       return;
     }
 
+    mostrarToast(
+      esEdicion ? "Reserva actualizada." : "Reserva creada.",
+      "exito"
+    );
     setAbierto(false);
   }
 

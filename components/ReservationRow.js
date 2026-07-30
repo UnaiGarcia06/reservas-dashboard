@@ -4,16 +4,25 @@ import { useState } from "react";
 import StatusStamp from "./StatusStamp";
 import ReservationModal from "./ReservationModal";
 import { cancelarReserva } from "@/lib/actions/reservas";
+import { useToast } from "@/components/ToastProvider";
 
 export default function ReservationRow({ reserva, modo, recursos }) {
   const [cancelando, setCancelando] = useState(false);
   const [confirmando, setConfirmando] = useState(false);
+  const { mostrarToast } = useToast();
 
   async function manejarCancelar() {
     setCancelando(true);
-    await cancelarReserva(reserva.id);
+    const resultado = await cancelarReserva(reserva.id);
     setCancelando(false);
     setConfirmando(false);
+
+    if (resultado?.error) {
+      mostrarToast(resultado.error, "error");
+      return;
+    }
+
+    mostrarToast("Reserva cancelada.", "exito");
   }
 
   return (
