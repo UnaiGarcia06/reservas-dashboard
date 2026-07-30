@@ -3,6 +3,12 @@
 import { useState } from "react";
 import { crearReserva, actualizarReserva } from "@/lib/actions/reservas";
 import { useToast } from "@/components/ToastProvider";
+import Button from "@/components/Button";
+
+const inputClass =
+  "w-full border border-paper-300 rounded-btn px-3 py-2 text-sm mt-1 text-ink-800 bg-paper-0 focus:outline-none focus:ring-1 focus:ring-ink-600 focus:border-ink-600 transition-colors";
+
+const labelClass = "text-[11px] uppercase tracking-wider text-ink-500 font-mono";
 
 export default function ReservationModal({
   modo,
@@ -33,10 +39,7 @@ export default function ReservationModal({
       return;
     }
 
-    mostrarToast(
-      esEdicion ? "Reserva actualizada." : "Reserva creada.",
-      "exito"
-    );
+    mostrarToast(esEdicion ? "Reserva actualizada." : "Reserva creada.", "exito");
     setAbierto(false);
   }
 
@@ -45,87 +48,75 @@ export default function ReservationModal({
       <span onClick={() => setAbierto(true)}>{trigger}</span>
 
       {abierto && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-paper-0 rounded-panel border border-paper-200 w-full max-w-md p-6 shadow-lg">
-            <h2 className="font-display text-xl mb-4 text-ink-800">
+        <div className="fixed inset-0 bg-ink-950/50 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
+          <div className="bg-paper-0 rounded-panel border border-paper-200 w-full max-w-md p-6 shadow-elevated">
+            <h2 className="font-display text-xl mb-5 text-ink-800">
               {esEdicion ? "Editar reserva" : "Nueva reserva"}
             </h2>
 
-            <form action={manejarSubmit} className="space-y-3">
+            <form action={manejarSubmit} className="space-y-3.5">
               <div>
-                <label className="text-xs uppercase tracking-wider text-ink-600 font-mono">
-                  Nombre
-                </label>
+                <label className={labelClass}>Nombre</label>
                 <input
                   name="nombre_cliente"
                   defaultValue={reserva?.nombre_cliente || ""}
                   required
-                  className="w-full border border-paper-200 rounded-card px-3 py-2 text-sm mt-1 text-ink-800 focus:outline-none focus:border-ink-600"
+                  className={inputClass}
                 />
               </div>
 
               <div>
-                <label className="text-xs uppercase tracking-wider text-ink-600 font-mono">
-                  Teléfono
-                </label>
+                <label className={labelClass}>Teléfono</label>
                 <input
                   name="telefono"
                   defaultValue={reserva?.telefono || ""}
                   required
-                  className="w-full border border-paper-200 rounded-card px-3 py-2 text-sm mt-1 text-ink-800 focus:outline-none focus:border-ink-600"
+                  className={inputClass}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs uppercase tracking-wider text-ink-600 font-mono">
-                    Fecha
-                  </label>
+                  <label className={labelClass}>Fecha</label>
                   <input
                     type="date"
                     name="fecha"
                     defaultValue={reserva?.fecha || ""}
                     required
-                    className="w-full border border-paper-200 rounded-card px-3 py-2 text-sm mt-1 text-ink-800 focus:outline-none focus:border-ink-600"
+                    className={inputClass}
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs uppercase tracking-wider text-ink-600 font-mono">
-                    Hora
-                  </label>
+                  <label className={labelClass}>Hora</label>
                   <input
                     type="time"
                     name="hora"
                     defaultValue={reserva?.hora || ""}
                     required
-                    className="w-full border border-paper-200 rounded-card px-3 py-2 text-sm mt-1 text-ink-800 focus:outline-none focus:border-ink-600"
+                    className={inputClass}
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-xs uppercase tracking-wider text-ink-600 font-mono">
-                  Personas
-                </label>
+                <label className={labelClass}>Personas</label>
                 <input
                   type="number"
                   name="personas"
                   min="1"
                   defaultValue={reserva?.personas || ""}
-                  className="w-full border border-paper-200 rounded-card px-3 py-2 text-sm mt-1 text-ink-800 focus:outline-none focus:border-ink-600"
+                  className={inputClass}
                 />
               </div>
 
               {modo === "slot" && (
                 <div>
-                  <label className="text-xs uppercase tracking-wider text-ink-600 font-mono">
-                    Recurso
-                  </label>
+                  <label className={labelClass}>Recurso</label>
                   <select
                     name="recurso_id"
                     defaultValue={reserva?.recurso_id || ""}
-                    className="w-full border border-paper-200 rounded-card px-3 py-2 text-sm mt-1 text-ink-800 focus:outline-none focus:border-ink-600"
+                    className={inputClass}
                   >
                     <option value="">Sin asignar</option>
                     {(recursos || []).map((r) => (
@@ -137,25 +128,19 @@ export default function ReservationModal({
                 </div>
               )}
 
-              {error && (
-                <p className="text-sm text-stamp-clay">{error}</p>
-              )}
+              {error && <p className="text-sm text-stamp-clay">{error}</p>}
 
-              <div className="flex gap-2 pt-2">
-                <button
-                  type="submit"
-                  disabled={enviando}
-                  className="flex-1 bg-ink-800 hover:bg-ink-700 text-paper-0 rounded-card px-4 py-2 text-sm disabled:opacity-50 transition-colors"
-                >
-                  {enviando ? "Guardando..." : "Guardar"}
-                </button>
-                <button
+              <div className="flex gap-2 pt-3">
+                <Button type="submit" disabled={enviando} className="flex-1">
+                  {enviando ? "Guardando…" : "Guardar"}
+                </Button>
+                <Button
                   type="button"
+                  variant="secondary"
                   onClick={() => setAbierto(false)}
-                  className="px-4 py-2 text-sm text-ink-600 hover:text-ink-800 transition-colors"
                 >
                   Cancelar
-                </button>
+                </Button>
               </div>
             </form>
           </div>

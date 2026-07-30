@@ -5,6 +5,7 @@ import ReservationRow from "@/components/ReservationRow";
 import ReservationModal from "@/components/ReservationModal";
 import GroupLabel from "@/components/GroupLabel";
 import DashboardSummary from "@/components/DashboardSummary";
+import Button from "@/components/Button";
 import { agruparPorTurno } from "@/lib/turnos";
 
 function agruparPorFecha(reservas) {
@@ -92,22 +93,18 @@ export default async function DashboardPage() {
         <ReservationModal
           modo={modo}
           recursos={recursos}
-          trigger={
-            <button className="bg-ink-800 hover:bg-ink-700 text-paper-0 rounded-card px-4 py-2 text-sm cursor-pointer transition-colors">
-              + Nueva reserva
-            </button>
-          }
+          trigger={<Button>+ Nueva reserva</Button>}
         />
       </div>
-      <p className="text-ink-600 text-sm mb-6">
+      <p className="text-ink-500 text-sm mb-6">
         Reservas confirmadas o pendientes desde hoy.
       </p>
 
       <DashboardSummary reservasHoy={reservasHoy} proximaReserva={proximaReserva} />
 
       {fechas.length === 0 ? (
-        <div className="border border-dashed border-paper-200 rounded-panel p-10 text-center">
-          <p className="text-sm text-ink-600">
+        <div className="border border-dashed border-paper-300 rounded-panel p-10 text-center">
+          <p className="text-sm text-ink-500">
             No hay reservas próximas todavía. En cuanto entre una, aparecerá aquí.
           </p>
         </div>
@@ -125,10 +122,10 @@ export default async function DashboardPage() {
 
             return (
               <div key={fecha}>
-                <h2 className="text-xs uppercase tracking-wider text-ink-600 font-mono mb-1.5">
+                <h2 className="text-[11px] uppercase tracking-wider text-ink-500 font-mono mb-1.5">
                   {formatearFecha(fecha)}
                 </h2>
-                <div className="bg-paper-50 rounded-panel border border-paper-200 px-3">
+                <div className="bg-paper-0 rounded-panel border border-paper-200 shadow-card px-3">
                   {subgrupos
                     ? subgrupos.map((grupo) => (
                         <Fragment key={grupo.nombre}>

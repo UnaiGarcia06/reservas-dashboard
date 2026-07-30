@@ -3,6 +3,7 @@
 import { useState } from "react";
 import StatusStamp from "./StatusStamp";
 import ReservationModal from "./ReservationModal";
+import Button from "./Button";
 import { cancelarReserva } from "@/lib/actions/reservas";
 import { useToast } from "@/components/ToastProvider";
 
@@ -26,7 +27,7 @@ export default function ReservationRow({ reserva, modo, recursos }) {
   }
 
   return (
-    <div className="flex items-center gap-4 py-2 px-3 border-b border-paper-200 last:border-0 hover:bg-paper-100 transition-colors rounded-card">
+    <div className="flex items-center gap-4 py-2.5 px-3 border-b border-paper-200 last:border-0 hover:bg-paper-50 transition-colors rounded-btn">
       <div className="font-mono text-sm text-ink-800 w-14 shrink-0">
         {reserva.hora}
       </div>
@@ -47,41 +48,36 @@ export default function ReservationRow({ reserva, modo, recursos }) {
 
       <StatusStamp estado={reserva.estado} />
 
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="flex items-center gap-1 shrink-0">
         <ReservationModal
           modo={modo}
           recursos={recursos}
           reserva={reserva}
           trigger={
-            <button className="text-xs text-ink-600 hover:text-ink-800 underline cursor-pointer transition-colors">
+            <Button variant="ghost" size="sm">
               Editar
-            </button>
+            </Button>
           }
         />
 
         {confirmando ? (
           <div className="flex items-center gap-1">
-            <button
+            <Button
+              variant="danger"
+              size="sm"
               onClick={manejarCancelar}
               disabled={cancelando}
-              className="text-xs text-stamp-clay hover:text-stamp-clay-strong underline cursor-pointer disabled:opacity-50 transition-colors"
             >
               {cancelando ? "..." : "Confirmar"}
-            </button>
-            <button
-              onClick={() => setConfirmando(false)}
-              className="text-xs text-ink-600 hover:text-ink-800 cursor-pointer transition-colors"
-            >
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => setConfirmando(false)}>
               No
-            </button>
+            </Button>
           </div>
         ) : (
-          <button
-            onClick={() => setConfirmando(true)}
-            className="text-xs text-stamp-clay hover:text-stamp-clay-strong underline cursor-pointer transition-colors"
-          >
+          <Button variant="danger" size="sm" onClick={() => setConfirmando(true)}>
             Cancelar
-          </button>
+          </Button>
         )}
       </div>
     </div>
