@@ -110,18 +110,18 @@ export default function ReservationModal({
                 />
               </div>
 
-              {modo === "slot" && (
+              {recursos && recursos.length > 0 && (
                 <div>
-                  <label className={labelClass}>Recurso</label>
+                  <label className={labelClass}>Mesa</label>
                   <select
                     name="recurso_id"
                     defaultValue={reserva?.recurso_id || ""}
                     className={inputClass}
                   >
                     <option value="">Sin asignar</option>
-                    {(recursos || []).map((r) => (
+                    {recursos.map((r) => (
                       <option key={r.id} value={r.id}>
-                        {r.nombre}
+                        {r.nombre} ({r.capacidad}p)
                       </option>
                     ))}
                   </select>
