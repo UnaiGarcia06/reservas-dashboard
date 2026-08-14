@@ -6,9 +6,9 @@ import { useToast } from "@/components/ToastProvider";
 import Button from "@/components/Button";
 
 const inputClass =
-  "w-full border border-paper-300 rounded-btn px-3 py-2 text-sm mt-1 text-ink-800 bg-paper-0 focus:outline-none focus:ring-1 focus:ring-ink-600 focus:border-ink-600 transition-colors";
+  "w-full border border-surface-border rounded-btn px-3 py-2 text-sm mt-1 text-ink bg-surface-card focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-colors";
 
-const labelClass = "text-[11px] uppercase tracking-wider text-ink-500 font-mono";
+const labelClass = "text-[11px] uppercase tracking-wider text-ink-muted font-mono";
 
 export default function ReservationModal({
   modo,
@@ -48,9 +48,9 @@ export default function ReservationModal({
       <span onClick={() => setAbierto(true)}>{trigger}</span>
 
       {abierto && (
-        <div className="fixed inset-0 bg-ink-950/50 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
-          <div className="bg-paper-0 rounded-panel border border-paper-200 w-full max-w-md p-6 shadow-elevated">
-            <h2 className="font-display text-xl mb-5 text-ink-800">
+        <div className="fixed inset-0 bg-sidebar/50 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
+          <div className="bg-surface-card rounded-panel border border-surface-border w-full max-w-md p-6 shadow-elevated">
+            <h2 className="text-xl font-semibold mb-5 text-ink">
               {esEdicion ? "Editar reserva" : "Nueva reserva"}
             </h2>
 
@@ -128,7 +128,7 @@ export default function ReservationModal({
                 </div>
               )}
 
-              {error && <p className="text-sm text-stamp-clay">{error}</p>}
+              {error && <p className="text-sm text-status-occupied">{error}</p>}
 
               <div className="flex gap-2 pt-3">
                 <Button type="submit" disabled={enviando} className="flex-1">
