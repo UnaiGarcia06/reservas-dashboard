@@ -6,7 +6,7 @@ export default function FloorPlan({ zonas }) {
       {zonas.map((zona) => (
         <div key={zona.nombre}>
           <h3 className="text-sm font-semibold text-ink mb-3">{zona.nombre}</h3>
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
             {zona.mesas.map((mesa) => (
               <TableNode key={mesa.id} mesa={mesa} />
             ))}

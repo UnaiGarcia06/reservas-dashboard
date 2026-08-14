@@ -59,7 +59,6 @@ export default async function MesasPage({ searchParams }) {
     .eq("fecha", fecha)
     .neq("estado", "Cancelada");
 
-  // Filtramos las reservas del turno activo (si aplica)
   const citasDelTurno = usaTurnos
     ? (citas || []).filter((c) => turnoDeHora(c.hora, turnos) === turnoActivo)
     : citas || [];
@@ -77,7 +76,6 @@ export default async function MesasPage({ searchParams }) {
     }
   }
 
-  // Armamos la estructura que espera FloorPlan: [{ nombre, mesas: [{ id, nombre, capacidad, ocupada, reserva }] }]
   const zonasMap = {};
   for (const r of recursos || []) {
     const nombreZona = r.zona || "General";
@@ -104,10 +102,6 @@ export default async function MesasPage({ searchParams }) {
       <h1 className="text-2xl font-semibold text-ink">Ocupación y Mesas</h1>
       <p className="text-ink-muted text-sm mb-4">{formatearFechaLarga(fecha)}</p>
 
-      {usaTurnos && (
-        <TabsTurno turnos={turnos} turnoActivo={turnoActivo} fecha={fecha} />
-      )}
-
       <div className="flex gap-6 items-start mt-4">
         <div className="flex-1">
           <FloorPlan zonas={zonas} />
@@ -118,6 +112,13 @@ export default async function MesasPage({ searchParams }) {
             Gestión Dinámica de Capacidad
           </h3>
           <FiltroFecha fecha={fecha} turno={turnoActivo} />
+
+          {usaTurnos && (
+            <div className="mt-3">
+              <TabsTurno turnos={turnos} turnoActivo={turnoActivo} fecha={fecha} />
+            </div>
+          )}
+
           <div className="mt-4">
             <CapacityBar reservados={reservadosPax} capacidadTotal={capacidadTotal} />
           </div>
