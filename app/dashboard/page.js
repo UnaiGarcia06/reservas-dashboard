@@ -54,7 +54,7 @@ export default async function DashboardPage() {
 
   const { data: recursos } = await supabase
     .from("recursos")
-    .select("id, nombre")
+    .select("id, nombre, zona, capacidad")
     .eq("negocio_id", negocioId)
     .eq("activo", true);
 
@@ -67,7 +67,7 @@ export default async function DashboardPage() {
 
   const { data: reservas } = await supabase
     .from("citas")
-    .select("id, nombre_cliente, telefono, fecha, hora, estado, detalles, recurso_id, recurso_ids")
+    .select("id, nombre_cliente, telefono, fecha, hora, estado, detalles, recurso_id, recurso_ids, duracion_minutos")
     .eq("negocio_id", negocioId)
     .neq("estado", "Cancelada")
     .gte("fecha", hoy)
@@ -104,6 +104,8 @@ export default async function DashboardPage() {
         <ReservationModal
           modo={modo}
           recursos={recursos}
+          turnos={turnos}
+          todasReservas={reservasFormateadas}
           trigger={<Button>+ Nueva reserva</Button>}
         />
       </div>
@@ -158,12 +160,26 @@ export default async function DashboardPage() {
                                 </td>
                               </tr>
                               {grupo.reservas.map((reserva) => (
-                                <ReservationRow key={reserva.id} reserva={reserva} modo={modo} recursos={recursos} />
+                                <ReservationRow
+                                  key={reserva.id}
+                                  reserva={reserva}
+                                  modo={modo}
+                                  recursos={recursos}
+                                  turnos={turnos}
+                                  todasReservas={reservasFormateadas}
+                                />
                               ))}
                             </Fragment>
                           ))
                         : reservasDelDia.map((reserva) => (
-                            <ReservationRow key={reserva.id} reserva={reserva} modo={modo} recursos={recursos} />
+                            <ReservationRow
+                              key={reserva.id}
+                              reserva={reserva}
+                              modo={modo}
+                              recursos={recursos}
+                              turnos={turnos}
+                              todasReservas={reservasFormateadas}
+                            />
                           ))}
                     </tbody>
                   </table>

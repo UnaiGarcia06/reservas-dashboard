@@ -7,7 +7,7 @@ import Button from "./Button";
 import { cancelarReserva } from "@/lib/actions/reservas";
 import { useToast } from "@/components/ToastProvider";
 
-export default function ReservationRow({ reserva, modo, recursos }) {
+export default function ReservationRow({ reserva, modo, recursos, turnos, todasReservas }) {
   const [cancelando, setCancelando] = useState(false);
   const [confirmando, setConfirmando] = useState(false);
   const { mostrarToast } = useToast();
@@ -52,6 +52,8 @@ export default function ReservationRow({ reserva, modo, recursos }) {
           <ReservationModal
             modo={modo}
             recursos={recursos}
+            turnos={turnos}
+            todasReservas={todasReservas}
             reserva={reserva}
             trigger={
               <Button variant="ghost" size="sm">
