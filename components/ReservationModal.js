@@ -23,6 +23,14 @@ export default function ReservationModal({
 
   const esEdicion = !!reserva;
 
+  const mesasAsignadas = (
+    reserva?.recurso_ids && reserva.recurso_ids.length > 0
+      ? reserva.recurso_ids
+      : reserva?.recurso_id
+      ? [reserva.recurso_id]
+      : []
+  ).map(String);
+
   async function manejarSubmit(formData) {
     setEnviando(true);
     setError(null);
@@ -112,13 +120,15 @@ export default function ReservationModal({
 
               {recursos && recursos.length > 0 && (
                 <div>
-                  <label className={labelClass}>Mesa</label>
+                  <label className={labelClass}>
+                    Mesas (Ctrl/Cmd + clic para varias)
+                  </label>
                   <select
-                    name="recurso_id"
-                    defaultValue={reserva?.recurso_id || ""}
-                    className={inputClass}
+                    name="recurso_ids"
+                    multiple
+                    defaultValue={mesasAsignadas}
+                    className={`${inputClass} h-32`}
                   >
-                    <option value="">Sin asignar</option>
                     {recursos.map((r) => (
                       <option key={r.id} value={r.id}>
                         {r.nombre} ({r.capacidad}p)
