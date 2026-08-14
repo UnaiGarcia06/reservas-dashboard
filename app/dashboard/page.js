@@ -7,6 +7,7 @@ import GroupLabel from "@/components/GroupLabel";
 import DashboardSummary from "@/components/DashboardSummary";
 import Button from "@/components/Button";
 import { agruparPorTurno } from "@/lib/turnos";
+import { obtenerTurnos } from "@/lib/turnosPorNegocio";
 
 function agruparPorFecha(reservas) {
   const grupos = {};
@@ -50,7 +51,7 @@ export default async function DashboardPage() {
   const { negocioId, negocio } = await getNegocioActual(supabase);
 
   const modo = negocio?.config_capacidad?.modo ?? null;
-  const turnos = negocio?.config_capacidad?.turnos ?? [];
+  const turnos = obtenerTurnos(negocioId);
 
   const { data: recursos } = await supabase
     .from("recursos")
