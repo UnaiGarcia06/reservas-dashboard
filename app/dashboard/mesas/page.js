@@ -1,12 +1,13 @@
-import { obtenerMesasConEstado } from "@/lib/actions/mesas";
+import { createClient } from "@/lib/supabase/server";
+import { getNegocioActual } from "@/lib/negocio";
+import { obtenerTurnos } from "@/lib/turnosPorNegocio";
+import { turnoDeHora } from "@/lib/turnos";
 import FloorPlan from "@/components/FloorPlan";
 import CapacityBar from "@/components/CapacityBar";
+import FiltroFecha from "@/components/FiltroFecha";
+import TabsTurno from "@/components/TabsTurno";
 
-function hoyISO() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function formatearFecha(fechaISO) {
+function formatearFechaLarga(fechaISO) {
   const fecha = new Date(fechaISO + "T00:00:00");
   return fecha.toLocaleDateString("es-ES", {
     weekday: "long",
@@ -15,60 +16,110 @@ function formatearFecha(fechaISO) {
   });
 }
 
-export default async function MesasPage({ searchParams }) {
-  const fecha = searchParams?.fecha || hoyISO();
+function horaActualHHMM() {
+  const ahora = new Date();
+  return `${String(ahora.getHours()).padStart(2, "0")}:${String(
+    ahora.getMinutes()
+  ).padStart(2, "0")}`;
+}
 
-  const { zonas, reservados, capacidadTotal } = await obtenerMesasConEstado(fecha);
+export default async function MesasPage({ searchParams }) {
+  const supabase = createClient();
+  const { negocioId, negocio } = await getNegocioActual(supabase);
+
+  const modo = negocio?.config_capacidad?.modo ?? null;
+  const turnos = obtenerTurnos(negocioId);
+  const usaTurnos = modo === "turno" && turnos.length > 0;
+
+  const hoy = new Date().toISOString().slice(0, 10);
+  const fecha = searchParams?.fecha || hoy;
+
+  const turnoDefecto = usaTurnos
+    ? fecha === hoy
+      ? turnoDeHora(horaActualHHMM(), turnos)
+      : turnos[0].nombre
+    : null;
+
+  const turnoActivo = usaTurnos
+    ? searchParams?.turno && turnos.some((t) => t.nombre === searchParams.turno)
+      ? searchParams.turno
+      : turnoDefecto
+    : null;
+
+  const { data: recursos } = await supabase
+    .from("recursos")
+    .select("id, nombre, zona, capacidad")
+    .eq("negocio_id", negocioId)
+    .eq("activo", true);
+
+  const { data: citas } = await supabase
+    .from("citas")
+    .select("id, nombre_cliente, hora, detalles, recurso_id, recurso_ids")
+    .eq("negocio_id", negocioId)
+    .eq("fecha", fecha)
+    .neq("estado", "Cancelada");
+
+  // Filtramos las reservas del turno activo (si aplica)
+  const citasDelTurno = usaTurnos
+    ? (citas || []).filter((c) => turnoDeHora(c.hora, turnos) === turnoActivo)
+    : citas || [];
+
+  const mapaOcupacion = {};
+  for (const c of citasDelTurno) {
+    const ids =
+      c.recurso_ids && c.recurso_ids.length > 0
+        ? c.recurso_ids
+        : c.recurso_id
+        ? [c.recurso_id]
+        : [];
+    for (const id of ids) {
+      mapaOcupacion[id] = c;
+    }
+  }
+
+  // Armamos la estructura que espera FloorPlan: [{ nombre, mesas: [{ id, nombre, capacidad, ocupada, reserva }] }]
+  const zonasMap = {};
+  for (const r of recursos || []) {
+    const nombreZona = r.zona || "General";
+    zonasMap[nombreZona] = zonasMap[nombreZona] || [];
+    const reserva = mapaOcupacion[r.id] || null;
+    zonasMap[nombreZona].push({
+      id: r.id,
+      nombre: r.nombre,
+      capacidad: r.capacidad,
+      ocupada: !!reserva,
+      reserva,
+    });
+  }
+  const zonas = Object.entries(zonasMap).map(([nombre, mesas]) => ({ nombre, mesas }));
+
+  const capacidadTotal = (recursos || []).reduce((sum, r) => sum + (r.capacidad || 0), 0);
+  const reservadosPax = citasDelTurno.reduce(
+    (sum, c) => sum + (Number(c.detalles?.personas) || 0),
+    0
+  );
 
   return (
-    <div className="max-w-5xl">
-      <div className="flex items-start justify-between mb-1">
-        <h1 className="text-2xl font-semibold text-ink">Ocupación y Mesas</h1>
-      </div>
-      <p className="text-ink-muted text-sm mb-6 capitalize">
-        {formatearFecha(fecha)}
-      </p>
+    <div>
+      <h1 className="text-2xl font-semibold text-ink">Ocupación y Mesas</h1>
+      <p className="text-ink-muted text-sm mb-4">{formatearFechaLarga(fecha)}</p>
 
-      <div className="grid md:grid-cols-[1fr_280px] gap-6">
-        <div className="bg-surface-card rounded-card border border-surface-border shadow-card p-5">
-          {zonas.length === 0 ? (
-            <div className="border border-dashed border-surface-border rounded-card p-10 text-center">
-              <p className="text-sm text-ink-muted">
-                Aún no hay mesas configuradas para este negocio.
-              </p>
-            </div>
-          ) : (
-            <FloorPlan zonas={zonas} />
-          )}
+      {usaTurnos && (
+        <TabsTurno turnos={turnos} turnoActivo={turnoActivo} fecha={fecha} />
+      )}
+
+      <div className="flex gap-6 items-start mt-4">
+        <div className="flex-1">
+          <FloorPlan zonas={zonas} />
         </div>
 
-        <div className="space-y-4">
-          <div className="bg-surface-card rounded-card border border-surface-border shadow-card p-4">
-            <h2 className="text-sm font-semibold text-ink mb-3">
-              Gestión Dinámica de Capacidad
-            </h2>
-
-            <form method="GET" className="mb-4">
-              <label className="text-[11px] uppercase tracking-wider text-ink-muted font-mono block mb-1">
-                Fecha de negocio
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="date"
-                  name="fecha"
-                  defaultValue={fecha}
-                  className="flex-1 border border-surface-border rounded-btn px-3 py-1.5 text-sm text-ink bg-surface-card focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand"
-                />
-                <button
-                  type="submit"
-                  className="text-sm px-3 py-1.5 rounded-btn bg-brand text-white hover:bg-brand-hover transition-colors"
-                >
-                  Ver
-                </button>
-              </div>
-            </form>
-
-            <CapacityBar reservados={reservados} capacidadTotal={capacidadTotal} />
+        <div className="w-72 bg-surface-card border border-surface-border rounded-card p-4 shrink-0">
+          <h3 className="text-sm font-semibold text-ink mb-3">
+            Gestión Dinámica de Capacidad
+          </h3>
+          <FiltroFecha fecha={fecha} turno={turnoActivo} />
+          <div className="mt-4">
+            <CapacityBar reservados={reservadosPax} capacidadTotal={capacidadTotal} />
           </div>
         </div>
       </div>
