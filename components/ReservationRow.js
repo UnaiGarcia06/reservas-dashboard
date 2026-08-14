@@ -40,7 +40,7 @@ export default function ReservationRow({ reserva, modo, recursos }) {
       </td>
 
       <td className="px-3 py-2.5 text-sm text-ink-muted">
-        {reserva.recurso_nombre || "—"}
+        {reserva.recurso_nombres || "—"}
       </td>
 
       <td className="px-3 py-2.5">

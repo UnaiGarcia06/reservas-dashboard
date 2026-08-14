@@ -22,7 +22,7 @@ function agruparPorRecurso(reservas, recursos) {
   const orden = (recursos || []).map((rec) => rec.nombre);
 
   for (const r of reservas) {
-    const nombre = r.recurso_nombre || "Sin recurso asignado";
+    const nombre = r.recurso_nombres || "Sin recurso asignado";
     grupos[nombre] = grupos[nombre] || [];
     grupos[nombre].push(r);
   }
@@ -67,18 +67,29 @@ export default async function DashboardPage() {
 
   const { data: reservas } = await supabase
     .from("citas")
-    .select("id, nombre_cliente, telefono, fecha, hora, estado, detalles, recurso_id")
+    .select("id, nombre_cliente, telefono, fecha, hora, estado, detalles, recurso_id, recurso_ids")
     .eq("negocio_id", negocioId)
     .neq("estado", "Cancelada")
     .gte("fecha", hoy)
     .order("fecha", { ascending: true })
     .order("hora", { ascending: true });
 
-  const reservasFormateadas = (reservas || []).map((r) => ({
-    ...r,
-    personas: r.detalles?.personas ?? "—",
-    recurso_nombre: r.recurso_id ? recursosMap[r.recurso_id] : null,
-  }));
+  const reservasFormateadas = (reservas || []).map((r) => {
+    const ids =
+      r.recurso_ids && r.recurso_ids.length > 0
+        ? r.recurso_ids
+        : r.recurso_id
+        ? [r.recurso_id]
+        : [];
+
+    const nombres = ids.map((id) => recursosMap[id]).filter(Boolean);
+
+    return {
+      ...r,
+      personas: r.detalles?.personas ?? "—",
+      recurso_nombres: nombres.length > 0 ? nombres.join(", ") : null,
+    };
+  });
 
   const reservasHoy = reservasFormateadas.filter((r) => r.fecha === hoy);
   const proximaReserva = reservasFormateadas[0] ?? null;
