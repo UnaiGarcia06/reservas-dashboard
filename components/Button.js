@@ -1,10 +1,10 @@
 const VARIANTS = {
   primary:
-    "bg-ink-800 text-paper-0 hover:bg-ink-700 shadow-card hover:shadow-card-hover",
+    "bg-brand text-white hover:bg-brand-hover shadow-card hover:shadow-card-hover",
   secondary:
-    "bg-paper-0 text-ink-800 border border-paper-300 hover:bg-paper-100",
-  ghost: "text-ink-600 hover:text-ink-800 hover:bg-paper-100",
-  danger: "text-stamp-clay hover:text-stamp-clay-strong hover:bg-stamp-clay-soft",
+    "bg-surface-card text-ink border border-surface-border hover:bg-surface",
+  ghost: "text-ink-muted hover:text-ink hover:bg-surface",
+  danger: "text-status-occupied hover:bg-status-occupied-soft",
 };
 
 const SIZES = {
