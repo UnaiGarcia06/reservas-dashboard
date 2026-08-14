@@ -3,25 +3,17 @@
 @tailwind utilities;
 
 @layer base {
+  body {
+    @apply bg-surface text-ink font-sans;
+  }
+
   ::selection {
-    background-color: #C0803A;
-    color: #F4F5F1;
+    background-color: #0ea5e9;
+    color: #ffffff;
   }
 
   *:focus-visible {
-    outline: 2px solid #C0803A;
+    outline: 2px solid #0ea5e9;
     outline-offset: 2px;
-  }
-}
-
-@layer utilities {
-  .ledger-rule {
-    background-image: repeating-linear-gradient(
-      to bottom,
-      transparent,
-      transparent 47px,
-      #DDDED6 47px,
-      #DDDED6 48px
-    );
   }
 }

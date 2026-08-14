@@ -7,51 +7,55 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Sidebar y superficies oscuras
+        sidebar: {
+          DEFAULT: "#1e2b3d",
+          hover: "#28394f",
+          active: "#0ea5e9",
+          text: "#cbd5e1",
+          "text-muted": "#7c8ba1",
+        },
+        // Fondo general de la app (contenido, no sidebar)
+        surface: {
+          DEFAULT: "#f4f6f9",
+          card: "#ffffff",
+          border: "#e2e8f0",
+        },
+        // Estados de reserva / mesa
+        status: {
+          confirmed: "#22c55e",
+          "confirmed-soft": "#dcfce7",
+          pending: "#f59e0b",
+          "pending-soft": "#fef3c7",
+          occupied: "#ef4444",
+          "occupied-soft": "#fee2e2",
+          free: "#22c55e",
+        },
+        // Acento principal (CTA, links activos, selects)
+        brand: {
+          DEFAULT: "#0ea5e9",
+          hover: "#0284c7",
+          soft: "#e0f2fe",
+        },
         ink: {
-          950: "#12201C",
-          900: "#17281F",
-          800: "#1E332C",
-          700: "#26433A",
-          600: "#2F4B41",
-          500: "#47645A",
-          400: "#6B8479",
-          300: "#9AB0A5",
-          200: "#C7D6CD",
-        },
-        paper: {
-          0: "#F4F5F1",
-          50: "#F8F9F6",
-          100: "#EAEBE5",
-          200: "#DDDED6",
-          300: "#C9CBC0",
-        },
-        stamp: {
-          amber: "#C0803A",
-          "amber-soft": "#F3E4CF",
-          "amber-strong": "#9C6529",
-          clay: "#B0503F",
-          "clay-soft": "#F1DCD6",
-          "clay-strong": "#8C3F31",
-          slate: "#5B6E68",
-          "slate-soft": "#E1E7E4",
-          "slate-strong": "#45534F",
+          DEFAULT: "#1e293b",
+          muted: "#64748b",
+          light: "#94a3b8",
         },
       },
       fontFamily: {
-        display: ["var(--font-fraunces)", "serif"],
-        sans: ["var(--font-inter)", "sans-serif"],
+        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
         mono: ["var(--font-plex-mono)", "monospace"],
       },
       borderRadius: {
-        stamp: "9999px",
         card: "12px",
         panel: "16px",
         btn: "8px",
       },
       boxShadow: {
-        card: "0 1px 2px 0 rgba(18, 32, 28, 0.05), 0 1px 3px 0 rgba(18, 32, 28, 0.06)",
-        "card-hover": "0 2px 4px 0 rgba(18, 32, 28, 0.06), 0 6px 12px -4px rgba(18, 32, 28, 0.10)",
-        elevated: "0 12px 32px -8px rgba(18, 32, 28, 0.22), 0 4px 12px -4px rgba(18, 32, 28, 0.14)",
+        card: "0 1px 2px 0 rgba(15, 23, 42, 0.05), 0 1px 3px 0 rgba(15, 23, 42, 0.06)",
+        "card-hover": "0 2px 4px 0 rgba(15, 23, 42, 0.06), 0 6px 12px -4px rgba(15, 23, 42, 0.10)",
+        elevated: "0 12px 32px -8px rgba(15, 23, 42, 0.20), 0 4px 12px -4px rgba(15, 23, 42, 0.12)",
       },
       keyframes: {
         "toast-in": {

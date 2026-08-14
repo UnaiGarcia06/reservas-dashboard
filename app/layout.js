@@ -1,12 +1,5 @@
-import { Fraunces, Inter, IBM_Plex_Mono } from "next/font/google";
+import { Inter, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
-
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  variable: "--font-fraunces",
-  weight: ["500", "600"],
-  style: ["normal", "italic"],
-});
 
 const inter = Inter({
   subsets: ["latin"],
@@ -27,8 +20,8 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="es" className={`${fraunces.variable} ${inter.variable} ${plexMono.variable}`}>
-      <body className="bg-paper-0 text-ink-950 font-sans antialiased">
+    <html lang="es" className={`${inter.variable} ${plexMono.variable}`}>
+      <body className="bg-surface text-ink font-sans antialiased">
         {children}
       </body>
     </html>
