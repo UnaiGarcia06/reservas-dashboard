@@ -87,24 +87,24 @@ export default async function DashboardPage() {
   const fechas = Object.keys(gruposPorFecha).sort();
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-4xl">
       <div className="flex items-start justify-between mb-1">
-        <h1 className="font-display text-2xl text-ink-800">Próximas reservas</h1>
+        <h1 className="text-2xl font-semibold text-ink">Lista de Reservas</h1>
         <ReservationModal
           modo={modo}
           recursos={recursos}
           trigger={<Button>+ Nueva reserva</Button>}
         />
       </div>
-      <p className="text-ink-500 text-sm mb-6">
+      <p className="text-ink-muted text-sm mb-6">
         Reservas confirmadas o pendientes desde hoy.
       </p>
 
       <DashboardSummary reservasHoy={reservasHoy} proximaReserva={proximaReserva} />
 
       {fechas.length === 0 ? (
-        <div className="border border-dashed border-paper-300 rounded-panel p-10 text-center">
-          <p className="text-sm text-ink-500">
+        <div className="border border-dashed border-surface-border rounded-card p-10 text-center">
+          <p className="text-sm text-ink-muted">
             No hay reservas próximas todavía. En cuanto entre una, aparecerá aquí.
           </p>
         </div>
@@ -122,22 +122,40 @@ export default async function DashboardPage() {
 
             return (
               <div key={fecha}>
-                <h2 className="text-[11px] uppercase tracking-wider text-ink-500 font-mono mb-1.5">
+                <h2 className="text-[11px] uppercase tracking-wider text-ink-muted font-mono mb-1.5">
                   {formatearFecha(fecha)}
                 </h2>
-                <div className="bg-paper-0 rounded-panel border border-paper-200 shadow-card px-3">
-                  {subgrupos
-                    ? subgrupos.map((grupo) => (
-                        <Fragment key={grupo.nombre}>
-                          <GroupLabel>{grupo.nombre}</GroupLabel>
-                          {grupo.reservas.map((reserva) => (
+                <div className="bg-surface-card rounded-card border border-surface-border shadow-card overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-surface-border text-left text-[11px] uppercase tracking-wide text-ink-muted">
+                        <th className="px-3 py-2 font-medium w-16">Hora</th>
+                        <th className="px-3 py-2 font-medium">Cliente</th>
+                        <th className="px-3 py-2 font-medium w-20 text-right">Nº Pax</th>
+                        <th className="px-3 py-2 font-medium w-32">Mesa/Zona</th>
+                        <th className="px-3 py-2 font-medium w-24">Estado</th>
+                        <th className="px-3 py-2 font-medium w-44 text-right">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {subgrupos
+                        ? subgrupos.map((grupo) => (
+                            <Fragment key={grupo.nombre}>
+                              <tr>
+                                <td colSpan={6} className="px-3 pt-3 pb-1">
+                                  <GroupLabel>{grupo.nombre}</GroupLabel>
+                                </td>
+                              </tr>
+                              {grupo.reservas.map((reserva) => (
+                                <ReservationRow key={reserva.id} reserva={reserva} modo={modo} recursos={recursos} />
+                              ))}
+                            </Fragment>
+                          ))
+                        : reservasDelDia.map((reserva) => (
                             <ReservationRow key={reserva.id} reserva={reserva} modo={modo} recursos={recursos} />
                           ))}
-                        </Fragment>
-                      ))
-                    : reservasDelDia.map((reserva) => (
-                        <ReservationRow key={reserva.id} reserva={reserva} modo={modo} recursos={recursos} />
-                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             );

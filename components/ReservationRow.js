@@ -27,59 +27,60 @@ export default function ReservationRow({ reserva, modo, recursos }) {
   }
 
   return (
-    <div className="flex items-center gap-4 py-2.5 px-3 border-b border-paper-200 last:border-0 hover:bg-paper-50 transition-colors rounded-btn">
-      <div className="font-mono text-sm text-ink-800 w-14 shrink-0">
-        {reserva.hora}
-      </div>
+    <tr className="border-b border-surface-border last:border-0 hover:bg-surface transition-colors">
+      <td className="px-3 py-2.5 font-mono text-sm text-ink">{reserva.hora}</td>
 
-      <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-ink-800 truncate">{reserva.nombre_cliente}</div>
-        <div className="text-xs text-ink-500 font-mono flex items-center gap-2">
-          <span>{reserva.telefono}</span>
-          {reserva.recurso_nombre && (
-            <span className="text-stamp-amber">· {reserva.recurso_nombre}</span>
+      <td className="px-3 py-2.5 min-w-0">
+        <div className="text-sm font-medium text-ink truncate">{reserva.nombre_cliente}</div>
+        <div className="text-xs text-ink-muted font-mono">{reserva.telefono}</div>
+      </td>
+
+      <td className="px-3 py-2.5 text-sm font-mono text-ink text-right">
+        {reserva.personas}
+      </td>
+
+      <td className="px-3 py-2.5 text-sm text-ink-muted">
+        {reserva.recurso_nombre || "—"}
+      </td>
+
+      <td className="px-3 py-2.5">
+        <StatusStamp estado={reserva.estado} />
+      </td>
+
+      <td className="px-3 py-2.5">
+        <div className="flex items-center justify-end gap-1">
+          <ReservationModal
+            modo={modo}
+            recursos={recursos}
+            reserva={reserva}
+            trigger={
+              <Button variant="ghost" size="sm">
+                Editar
+              </Button>
+            }
+          />
+
+          {confirmando ? (
+            <div className="flex items-center gap-1">
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={manejarCancelar}
+                disabled={cancelando}
+              >
+                {cancelando ? "..." : "Confirmar"}
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => setConfirmando(false)}>
+                No
+              </Button>
+            </div>
+          ) : (
+            <Button variant="danger" size="sm" onClick={() => setConfirmando(true)}>
+              Cancelar
+            </Button>
           )}
         </div>
-      </div>
-
-      <div className="text-sm font-mono text-ink-600 w-20 text-right shrink-0">
-        {reserva.personas} pers.
-      </div>
-
-      <StatusStamp estado={reserva.estado} />
-
-      <div className="flex items-center gap-1 shrink-0">
-        <ReservationModal
-          modo={modo}
-          recursos={recursos}
-          reserva={reserva}
-          trigger={
-            <Button variant="ghost" size="sm">
-              Editar
-            </Button>
-          }
-        />
-
-        {confirmando ? (
-          <div className="flex items-center gap-1">
-            <Button
-              variant="danger"
-              size="sm"
-              onClick={manejarCancelar}
-              disabled={cancelando}
-            >
-              {cancelando ? "..." : "Confirmar"}
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => setConfirmando(false)}>
-              No
-            </Button>
-          </div>
-        ) : (
-          <Button variant="danger" size="sm" onClick={() => setConfirmando(true)}>
-            Cancelar
-          </Button>
-        )}
-      </div>
-    </div>
+      </td>
+    </tr>
   );
 }
