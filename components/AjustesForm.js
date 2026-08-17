@@ -3,7 +3,14 @@
 import { useState } from "react";
 import {
   actualizarDatosGenerales,
-  actualizarTurnos,
+  crearTurno,
+  actualizarTurno,
+  eliminarTurno,
+  crearZona,
+  actualizarZona,
+  toggleZonaActiva,
+  obtenerImpactoEliminarZona,
+  eliminarZona,
   crearRecurso,
   actualizarRecurso,
   toggleRecursoActivo,
@@ -23,7 +30,17 @@ const botonPrimario =
 const enlaceSutil = "text-xs text-ink-muted underline cursor-pointer hover:text-ink";
 const enlacePeligro = "text-xs text-status-occupied underline cursor-pointer hover:opacity-80";
 
-export default function AjustesForm({ negocio, recursos, tiposServicio }) {
+function Seccion({ titulo, children }) {
+  return (
+    <section className="bg-surface-card rounded-card border border-surface-border shadow-card p-5">
+      <h2 className="text-base font-semibold text-ink mb-4">{titulo}</h2>
+      {children}
+    </section>
+  );
+}
+
+export default function AjustesForm({ negocio, zonas, recursos, turnos, tiposServicio }) {
+  // ---------- Datos generales ----------
   const [nombre, setNombre] = useState(negocio?.nombre || "");
   const [guardandoNombre, setGuardandoNombre] = useState(false);
   const [mensajeNombre, setMensajeNombre] = useState(null);
@@ -36,51 +53,122 @@ export default function AjustesForm({ negocio, recursos, tiposServicio }) {
     setMensajeNombre(resultado?.error ? resultado.error : "Guardado");
   }
 
-  const [turnos, setTurnos] = useState(
-    negocio?.config_capacidad?.turnos || []
-  );
-  const [guardandoTurnos, setGuardandoTurnos] = useState(false);
-  const [mensajeTurnos, setMensajeTurnos] = useState(null);
+  // ---------- Turnos ----------
+  const [editandoTurnoId, setEditandoTurnoId] = useState(null);
+  const [creandoTurno, setCreandoTurno] = useState(false);
+  const [mensajeTurno, setMensajeTurno] = useState(null);
+  const [borrandoTurnoId, setBorrandoTurnoId] = useState(null);
+  const [confirmandoBorrarTurno, setConfirmandoBorrarTurno] = useState(null);
 
-  function actualizarTurnoLocal(index, campo, valor) {
-    setTurnos((prev) =>
-      prev.map((t, i) => (i === index ? { ...t, [campo]: valor } : t))
-    );
+  async function manejarCrearTurno(formData) {
+    setCreandoTurno(true);
+    setMensajeTurno(null);
+    const resultado = await crearTurno(formData);
+    setCreandoTurno(false);
+    if (resultado?.error) setMensajeTurno(resultado.error);
   }
 
-  function agregarTurno() {
-    setTurnos((prev) => [...prev, { nombre: "", inicio: "", fin: "" }]);
+  async function manejarActualizarTurno(id, formData) {
+    const resultado = await actualizarTurno(id, formData);
+    if (!resultado?.error) setEditandoTurnoId(null);
+    else setMensajeTurno(resultado.error);
   }
 
-  function quitarTurno(index) {
-    setTurnos((prev) => prev.filter((_, i) => i !== index));
+  async function manejarBorrarTurno(id) {
+    setBorrandoTurnoId(id);
+    const resultado = await eliminarTurno(id);
+    setBorrandoTurnoId(null);
+    setConfirmandoBorrarTurno(null);
+    if (resultado?.error) setMensajeTurno(resultado.error);
   }
 
-  async function manejarGuardarTurnos() {
-    setGuardandoTurnos(true);
-    setMensajeTurnos(null);
-    const resultado = await actualizarTurnos(turnos);
-    setGuardandoTurnos(false);
-    setMensajeTurnos(resultado?.error ? resultado.error : "Guardado");
-  }
+  // ---------- Zonas y mesas ----------
+  const [editandoZonaId, setEditandoZonaId] = useState(null);
+  const [creandoZona, setCreandoZona] = useState(false);
+  const [mensajeZona, setMensajeZona] = useState(null);
 
-  const [nombreNuevoRecurso, setNombreNuevoRecurso] = useState("");
-  const [creandoRecurso, setCreandoRecurso] = useState(false);
   const [editandoRecursoId, setEditandoRecursoId] = useState(null);
-
+  const [creandoRecursoEnZona, setCreandoRecursoEnZona] = useState(null);
   const [mensajeRecurso, setMensajeRecurso] = useState(null);
-  const [tipoNuevoRecurso, setTipoNuevoRecurso] = useState("");
 
-  async function manejarCrearRecurso(formData) {
-    setCreandoRecurso(true);
+  // Diálogo de borrado de zona
+  const [zonaAConfirmar, setZonaAConfirmar] = useState(null); // { id, nombre }
+  const [impacto, setImpacto] = useState(null); // { numMesas, reservasFuturas }
+  const [cargandoImpacto, setCargandoImpacto] = useState(false);
+  const [eliminandoZona, setEliminandoZona] = useState(false);
+
+  const recursosPorZona = {};
+  const recursosSinZona = [];
+  for (const r of recursos) {
+    if (r.zona_id) {
+      recursosPorZona[r.zona_id] = recursosPorZona[r.zona_id] || [];
+      recursosPorZona[r.zona_id].push(r);
+    } else {
+      recursosSinZona.push(r);
+    }
+  }
+
+  async function manejarCrearZona(formData) {
+    setCreandoZona(true);
+    setMensajeZona(null);
+    const resultado = await crearZona(formData);
+    setCreandoZona(false);
+    if (resultado?.error) setMensajeZona(resultado.error);
+  }
+
+  async function manejarActualizarZona(id, formData) {
+    const resultado = await actualizarZona(id, formData);
+    if (!resultado?.error) setEditandoZonaId(null);
+    else setMensajeZona(resultado.error);
+  }
+
+  async function manejarToggleZona(id, activaActual) {
+    const resultado = await toggleZonaActiva(id, !activaActual);
+    if (resultado?.error) setMensajeZona(resultado.error);
+  }
+
+  async function manejarClicEliminarZona(zona) {
+    setMensajeZona(null);
+    setCargandoImpacto(true);
+    const resultado = await obtenerImpactoEliminarZona(zona.id);
+    setCargandoImpacto(false);
+
+    if (resultado?.error) {
+      setMensajeZona(resultado.error);
+      return;
+    }
+
+    setImpacto(resultado);
+    setZonaAConfirmar(zona);
+  }
+
+  async function manejarConfirmarEliminarZona() {
+    if (!zonaAConfirmar) return;
+    setEliminandoZona(true);
+    const resultado = await eliminarZona(zonaAConfirmar.id);
+    setEliminandoZona(false);
+
+    if (resultado?.error) {
+      // Puede que en el momento de confirmar hayan aparecido reservas nuevas.
+      setImpacto({
+        numMesas: impacto?.numMesas || 0,
+        reservasFuturas: resultado.reservasFuturas || [],
+      });
+      setMensajeZona(resultado.error);
+      return;
+    }
+
+    setZonaAConfirmar(null);
+    setImpacto(null);
+  }
+
+  async function manejarCrearRecurso(zonaId, formData) {
     setMensajeRecurso(null);
     const resultado = await crearRecurso(formData);
-    setCreandoRecurso(false);
     if (resultado?.error) {
       setMensajeRecurso(resultado.error);
     } else {
-      setNombreNuevoRecurso("");
-      setTipoNuevoRecurso("");
+      setCreandoRecursoEnZona(null);
     }
   }
 
@@ -88,13 +176,16 @@ export default function AjustesForm({ negocio, recursos, tiposServicio }) {
     const resultado = await actualizarRecurso(id, formData);
     if (!resultado?.error) {
       setEditandoRecursoId(null);
+    } else {
+      setMensajeRecurso(resultado.error);
     }
   }
 
-  async function manejarToggleActivo(id, activoActual) {
+  async function manejarToggleRecursoActivo(id, activoActual) {
     await toggleRecursoActivo(id, !activoActual);
   }
 
+  // ---------- Tipos de servicio ----------
   const [nombreNuevoTipo, setNombreNuevoTipo] = useState("");
   const [duracionNuevoTipo, setDuracionNuevoTipo] = useState("");
   const [creandoTipo, setCreandoTipo] = useState(false);
@@ -116,9 +207,7 @@ export default function AjustesForm({ negocio, recursos, tiposServicio }) {
 
   async function manejarActualizarTipoServicio(id, formData) {
     const resultado = await actualizarTipoServicio(id, formData);
-    if (!resultado?.error) {
-      setEditandoTipoId(null);
-    }
+    if (!resultado?.error) setEditandoTipoId(null);
   }
 
   async function manejarToggleTipoActivo(id, activoActual) {
@@ -127,8 +216,8 @@ export default function AjustesForm({ negocio, recursos, tiposServicio }) {
 
   return (
     <div className="max-w-2xl space-y-6">
-      <section className="bg-surface-card rounded-card border border-surface-border shadow-card p-5">
-        <h2 className="text-base font-semibold text-ink mb-4">Datos generales</h2>
+      {/* Datos generales */}
+      <Seccion titulo="Datos generales">
         <form action={manejarGuardarNombre} className="flex items-end gap-3">
           <div className="flex-1">
             <label className={labelClass}>Nombre del negocio</label>
@@ -143,159 +232,276 @@ export default function AjustesForm({ negocio, recursos, tiposServicio }) {
             {guardandoNombre ? "..." : "Guardar"}
           </button>
         </form>
-        {mensajeNombre && (
-          <p className="text-xs text-ink-muted mt-2">{mensajeNombre}</p>
-        )}
-      </section>
+        {mensajeNombre && <p className="text-xs text-ink-muted mt-2">{mensajeNombre}</p>}
+      </Seccion>
 
-      <section className="bg-surface-card rounded-card border border-surface-border shadow-card p-5">
-        <h2 className="text-base font-semibold text-ink mb-4">Turnos</h2>
+      {/* Turnos */}
+      <Seccion titulo="Turnos">
         <div className="space-y-3">
-          {turnos.map((turno, index) => (
-            <div key={index} className="flex items-end gap-2">
-              <div className="flex-1">
-                <label className={labelClass}>Nombre</label>
-                <input
-                  value={turno.nombre}
-                  onChange={(e) =>
-                    actualizarTurnoLocal(index, "nombre", e.target.value)
-                  }
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <label className={labelClass}>Inicio</label>
-                <input
-                  type="time"
-                  value={turno.inicio}
-                  onChange={(e) =>
-                    actualizarTurnoLocal(index, "inicio", e.target.value)
-                  }
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <label className={labelClass}>Fin</label>
-                <input
-                  type="time"
-                  value={turno.fin}
-                  onChange={(e) =>
-                    actualizarTurnoLocal(index, "fin", e.target.value)
-                  }
-                  className={inputClass}
-                />
-              </div>
-
-              <button onClick={() => quitarTurno(index)} className={`${enlacePeligro} pb-2`}>
-                Quitar
-              </button>
-            </div>
-          ))}
-        </div>
-
-        <button onClick={agregarTurno} className={`${enlaceSutil} mt-3 block`}>
-          + Añadir turno
-        </button>
-
-        <div className="mt-4">
-          <button onClick={manejarGuardarTurnos} disabled={guardandoTurnos} className={botonPrimario}>
-            {guardandoTurnos ? "..." : "Guardar turnos"}
-          </button>
-          {mensajeTurnos && (
-            <p className="text-xs text-ink-muted mt-2">{mensajeTurnos}</p>
-          )}
-        </div>
-      </section>
-
-      <section className="bg-surface-card rounded-card border border-surface-border shadow-card p-5">
-        <h2 className="text-base font-semibold text-ink mb-4">Recursos</h2>
-        <div className="space-y-2">
-          {recursos.map((recurso) => (
-            <div
-              key={recurso.id}
-              className="flex items-center gap-3 border-b border-surface-border pb-2 last:border-0"
-            >
-              {editandoRecursoId === recurso.id ? (
-                <form
-                  action={(formData) =>
-                    manejarActualizarRecurso(recurso.id, formData)
-                  }
-                  className="flex items-center gap-2 flex-1"
-                >
+          {turnos.map((turno) =>
+            editandoTurnoId === turno.id ? (
+              <form
+                key={turno.id}
+                action={(formData) => manejarActualizarTurno(turno.id, formData)}
+                className="flex items-end gap-2"
+              >
+                <div className="flex-1">
+                  <label className={labelClass}>Nombre</label>
+                  <input name="nombre" defaultValue={turno.nombre} className={inputClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>Inicio</label>
                   <input
-                    name="nombre"
-                    defaultValue={recurso.nombre}
-                    className="flex-1 border border-surface-border rounded-btn px-3 py-1 text-sm bg-surface-card text-ink"
+                    type="time"
+                    name="inicio"
+                    defaultValue={turno.inicio}
+                    className={inputClass}
                   />
-                  <button type="submit" className={enlaceSutil}>
-                    Guardar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditandoRecursoId(null)}
-                    className="text-xs text-ink-muted cursor-pointer"
-                  >
-                    Cancelar
-                  </button>
-                </form>
-              ) : (
-                <>
-                  <span
-                    className={`flex-1 text-sm ${
-                      recurso.activo ? "text-ink" : "text-ink-muted line-through"
-                    }`}
-                  >
-                    {recurso.nombre}
+                </div>
+                <div>
+                  <label className={labelClass}>Fin</label>
+                  <input type="time" name="fin" defaultValue={turno.fin} className={inputClass} />
+                </div>
+                <button type="submit" className={`${enlaceSutil} pb-2`}>
+                  Guardar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditandoTurnoId(null)}
+                  className="text-xs text-ink-muted cursor-pointer pb-2"
+                >
+                  Cancelar
+                </button>
+              </form>
+            ) : (
+              <div
+                key={turno.id}
+                className="flex items-center gap-3 border-b border-surface-border pb-2 last:border-0"
+              >
+                <span className="flex-1 text-sm text-ink">
+                  {turno.nombre} · {turno.inicio}–{turno.fin}
+                </span>
+                <button
+                  onClick={() => setEditandoTurnoId(turno.id)}
+                  className={enlaceSutil}
+                >
+                  Editar
+                </button>
+                {confirmandoBorrarTurno === turno.id ? (
+                  <span className="flex items-center gap-2">
+                    <button
+                      onClick={() => manejarBorrarTurno(turno.id)}
+                      disabled={borrandoTurnoId === turno.id}
+                      className={enlacePeligro}
+                    >
+                      {borrandoTurnoId === turno.id ? "..." : "Confirmar"}
+                    </button>
+                    <button
+                      onClick={() => setConfirmandoBorrarTurno(null)}
+                      className="text-xs text-ink-muted cursor-pointer"
+                    >
+                      No
+                    </button>
                   </span>
+                ) : (
                   <button
-                    onClick={() => setEditandoRecursoId(recurso.id)}
-                    className={enlaceSutil}
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() =>
-                      manejarToggleActivo(recurso.id, recurso.activo)
-                    }
+                    onClick={() => setConfirmandoBorrarTurno(turno.id)}
                     className={enlacePeligro}
                   >
-                    {recurso.activo ? "Desactivar" : "Activar"}
+                    Quitar
                   </button>
-                </>
-              )}
-            </div>
-          ))}
+                )}
+              </div>
+            )
+          )}
+          {turnos.length === 0 && (
+            <p className="text-sm text-ink-muted">Aún no hay turnos configurados.</p>
+          )}
         </div>
 
         <form
-          action={manejarCrearRecurso}
+          action={manejarCrearTurno}
+          className="flex items-end gap-2 mt-4 pt-3 border-t border-surface-border"
+        >
+          <div className="flex-1">
+            <label className={labelClass}>Nombre</label>
+            <input name="nombre" placeholder="ej. Comida" className={inputClass} />
+          </div>
+          <div>
+            <label className={labelClass}>Inicio</label>
+            <input type="time" name="inicio" className={inputClass} />
+          </div>
+          <div>
+            <label className={labelClass}>Fin</label>
+            <input type="time" name="fin" className={inputClass} />
+          </div>
+          <button type="submit" disabled={creandoTurno} className={botonPrimario}>
+            {creandoTurno ? "..." : "Añadir"}
+          </button>
+        </form>
+        {mensajeTurno && <p className="text-xs text-ink-muted mt-2">{mensajeTurno}</p>}
+      </Seccion>
+
+      {/* Zonas y mesas */}
+      <Seccion titulo="Zonas y mesas">
+        <div className="space-y-5">
+          {zonas.map((zona) => {
+            const mesasDeZona = recursosPorZona[zona.id] || [];
+            return (
+              <div key={zona.id} className="border border-surface-border rounded-btn p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  {editandoZonaId === zona.id ? (
+                    <form
+                      action={(formData) => manejarActualizarZona(zona.id, formData)}
+                      className="flex items-center gap-2 flex-1"
+                    >
+                      <input
+                        name="nombre"
+                        defaultValue={zona.nombre}
+                        className="flex-1 border border-surface-border rounded-btn px-3 py-1 text-sm bg-surface-card text-ink"
+                      />
+                      <button type="submit" className={enlaceSutil}>
+                        Guardar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditandoZonaId(null)}
+                        className="text-xs text-ink-muted cursor-pointer"
+                      >
+                        Cancelar
+                      </button>
+                    </form>
+                  ) : (
+                    <>
+                      <span
+                        className={`flex-1 text-sm font-semibold ${
+                          zona.activa ? "text-ink" : "text-ink-muted line-through"
+                        }`}
+                      >
+                        {zona.nombre}
+                      </span>
+                      <button onClick={() => setEditandoZonaId(zona.id)} className={enlaceSutil}>
+                        Editar
+                      </button>
+                      <button
+                        onClick={() => manejarToggleZona(zona.id, zona.activa)}
+                        className={enlaceSutil}
+                      >
+                        {zona.activa ? "Desactivar" : "Activar"}
+                      </button>
+                      <button
+                        onClick={() => manejarClicEliminarZona(zona)}
+                        disabled={cargandoImpacto}
+                        className={enlacePeligro}
+                      >
+                        Eliminar
+                      </button>
+                    </>
+                  )}
+                </div>
+
+                {!zona.activa && (
+                  <p className="text-xs text-ink-muted mb-2">
+                    Zona desactivada — sus mesas no aparecen como disponibles.
+                  </p>
+                )}
+
+                <div className="space-y-1.5 pl-3">
+                  {mesasDeZona.map((recurso) => (
+                    <FilaRecurso
+                      key={recurso.id}
+                      recurso={recurso}
+                      zonas={zonas}
+                      editando={editandoRecursoId === recurso.id}
+                      onEditar={() => setEditandoRecursoId(recurso.id)}
+                      onCancelar={() => setEditandoRecursoId(null)}
+                      onGuardar={(formData) => manejarActualizarRecurso(recurso.id, formData)}
+                      onToggle={() => manejarToggleRecursoActivo(recurso.id, recurso.activo)}
+                    />
+                  ))}
+                  {mesasDeZona.length === 0 && (
+                    <p className="text-xs text-ink-muted">Sin mesas en esta zona.</p>
+                  )}
+                </div>
+
+                {creandoRecursoEnZona === zona.id ? (
+                  <form
+                    action={(formData) => manejarCrearRecurso(zona.id, formData)}
+                    className="flex items-center gap-2 mt-2 pl-3"
+                  >
+                    <input type="hidden" name="zona_id" value={zona.id} />
+                    <input
+                      name="nombre"
+                      placeholder="Nombre de la mesa"
+                      className="flex-1 border border-surface-border rounded-btn px-3 py-1.5 text-sm bg-surface-card text-ink"
+                    />
+                    <input
+                      name="tipo"
+                      placeholder="Tipo (ej. mesa)"
+                      className="w-32 border border-surface-border rounded-btn px-3 py-1.5 text-sm bg-surface-card text-ink"
+                    />
+                    <button type="submit" className={enlaceSutil}>
+                      Añadir
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCreandoRecursoEnZona(null)}
+                      className="text-xs text-ink-muted cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
+                  </form>
+                ) : (
+                  <button
+                    onClick={() => setCreandoRecursoEnZona(zona.id)}
+                    className={`${enlaceSutil} mt-2 ml-3`}
+                  >
+                    + Añadir mesa
+                  </button>
+                )}
+              </div>
+            );
+          })}
+
+          {recursosSinZona.length > 0 && (
+            <div className="border border-dashed border-surface-border rounded-btn p-3">
+              <span className="text-sm font-semibold text-ink-muted">Sin zona asignada</span>
+              <div className="space-y-1.5 pl-3 mt-2">
+                {recursosSinZona.map((recurso) => (
+                  <FilaRecurso
+                    key={recurso.id}
+                    recurso={recurso}
+                    zonas={zonas}
+                    editando={editandoRecursoId === recurso.id}
+                    onEditar={() => setEditandoRecursoId(recurso.id)}
+                    onCancelar={() => setEditandoRecursoId(null)}
+                    onGuardar={(formData) => manejarActualizarRecurso(recurso.id, formData)}
+                    onToggle={() => manejarToggleRecursoActivo(recurso.id, recurso.activo)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <form
+          action={manejarCrearZona}
           className="flex items-center gap-2 mt-4 pt-3 border-t border-surface-border"
         >
           <input
             name="nombre"
-            value={nombreNuevoRecurso}
-            onChange={(e) => setNombreNuevoRecurso(e.target.value)}
-            placeholder="Nombre del recurso"
+            placeholder="Nombre de la nueva zona"
             className="flex-1 border border-surface-border rounded-btn px-3 py-2 text-sm bg-surface-card text-ink"
           />
-          <input
-            name="tipo"
-            value={tipoNuevoRecurso}
-            onChange={(e) => setTipoNuevoRecurso(e.target.value)}
-            placeholder="Tipo (ej. silla, sala)"
-            className="flex-1 border border-surface-border rounded-btn px-3 py-2 text-sm bg-surface-card text-ink"
-          />
-          <button type="submit" disabled={creandoRecurso} className={botonPrimario}>
-            {creandoRecurso ? "..." : "Añadir"}
+          <button type="submit" disabled={creandoZona} className={botonPrimario}>
+            {creandoZona ? "..." : "Añadir zona"}
           </button>
         </form>
-        {mensajeRecurso && (
-          <p className="text-xs text-ink-muted mt-2">{mensajeRecurso}</p>
-        )}
-      </section>
+        {mensajeZona && <p className="text-xs text-ink-muted mt-2">{mensajeZona}</p>}
+      </Seccion>
 
-      <section className="bg-surface-card rounded-card border border-surface-border shadow-card p-5">
-        <h2 className="text-base font-semibold text-ink mb-4">Tipos de servicio</h2>
+      {/* Tipos de servicio */}
+      <Seccion titulo="Tipos de servicio">
         <div className="space-y-2">
           {(tiposServicio || []).map((tipo) => (
             <div
@@ -304,9 +510,7 @@ export default function AjustesForm({ negocio, recursos, tiposServicio }) {
             >
               {editandoTipoId === tipo.id ? (
                 <form
-                  action={(formData) =>
-                    manejarActualizarTipoServicio(tipo.id, formData)
-                  }
+                  action={(formData) => manejarActualizarTipoServicio(tipo.id, formData)}
                   className="flex items-center gap-2 flex-1"
                 >
                   <input
@@ -340,16 +544,11 @@ export default function AjustesForm({ negocio, recursos, tiposServicio }) {
                   >
                     {tipo.nombre} · {tipo.duracion_minutos} min
                   </span>
-                  <button
-                    onClick={() => setEditandoTipoId(tipo.id)}
-                    className={enlaceSutil}
-                  >
+                  <button onClick={() => setEditandoTipoId(tipo.id)} className={enlaceSutil}>
                     Editar
                   </button>
                   <button
-                    onClick={() =>
-                      manejarToggleTipoActivo(tipo.id, tipo.activo)
-                    }
+                    onClick={() => manejarToggleTipoActivo(tipo.id, tipo.activo)}
                     className={enlacePeligro}
                   >
                     {tipo.activo ? "Desactivar" : "Activar"}
@@ -383,10 +582,122 @@ export default function AjustesForm({ negocio, recursos, tiposServicio }) {
             {creandoTipo ? "..." : "Añadir"}
           </button>
         </form>
-        {mensajeTipo && (
-          <p className="text-xs text-ink-muted mt-2">{mensajeTipo}</p>
-        )}
-      </section>
+        {mensajeTipo && <p className="text-xs text-ink-muted mt-2">{mensajeTipo}</p>}
+      </Seccion>
+
+      {/* Diálogo de confirmación para eliminar zona */}
+      {zonaAConfirmar && impacto && (
+        <div className="fixed inset-0 bg-sidebar/50 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
+          <div className="bg-surface-card rounded-panel border border-surface-border w-full max-w-md p-6 shadow-elevated">
+            {impacto.reservasFuturas.length > 0 ? (
+              <>
+                <h3 className="text-base font-semibold text-ink mb-2">
+                  No se puede eliminar "{zonaAConfirmar.nombre}"
+                </h3>
+                <p className="text-sm text-ink-muted mb-3">
+                  Tienes reservas futuras en mesas de esta zona. Primero borra o desplaza
+                  estas reservas a otra zona para poder eliminarla.
+                </p>
+                <div className="space-y-1.5 mb-4 max-h-48 overflow-y-auto">
+                  {impacto.reservasFuturas.map((r) => (
+                    <div
+                      key={r.id}
+                      className="text-xs text-ink border border-surface-border rounded-btn px-2.5 py-1.5"
+                    >
+                      {r.fecha} · {r.hora} — {r.nombre_cliente} ({r.mesas})
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={() => {
+                    setZonaAConfirmar(null);
+                    setImpacto(null);
+                  }}
+                  className={botonPrimario}
+                >
+                  Cerrar
+                </button>
+              </>
+            ) : (
+              <>
+                <h3 className="text-base font-semibold text-ink mb-2">
+                  ¿Eliminar "{zonaAConfirmar.nombre}"?
+                </h3>
+                <p className="text-sm text-ink-muted mb-4">
+                  {impacto.numMesas > 0
+                    ? `Esta zona tiene ${impacto.numMesas} mesa(s) asignada(s). Al eliminarla, esas mesas quedarán sin zona.`
+                    : "Esta zona no tiene mesas asignadas."}{" "}
+                  ¿Estás seguro de que quieres continuar?
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={manejarConfirmarEliminarZona}
+                    disabled={eliminandoZona}
+                    className="bg-status-occupied text-white rounded-btn px-4 py-2 text-sm disabled:opacity-50 hover:opacity-90 transition-opacity"
+                  >
+                    {eliminandoZona ? "..." : "Eliminar"}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setZonaAConfirmar(null);
+                      setImpacto(null);
+                    }}
+                    className="text-sm text-ink-muted px-4 py-2"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FilaRecurso({ recurso, zonas, editando, onEditar, onCancelar, onGuardar, onToggle }) {
+  if (editando) {
+    return (
+      <form action={onGuardar} className="flex items-center gap-2">
+        <input
+          name="nombre"
+          defaultValue={recurso.nombre}
+          className="flex-1 border border-surface-border rounded-btn px-3 py-1 text-sm bg-surface-card text-ink"
+        />
+        <select
+          name="zona_id"
+          defaultValue={recurso.zona_id || ""}
+          className="border border-surface-border rounded-btn px-2 py-1 text-sm bg-surface-card text-ink"
+        >
+          <option value="">Sin zona</option>
+          {zonas.map((z) => (
+            <option key={z.id} value={z.id}>
+              {z.nombre}
+            </option>
+          ))}
+        </select>
+        <button type="submit" className={enlaceSutil}>
+          Guardar
+        </button>
+        <button type="button" onClick={onCancelar} className="text-xs text-ink-muted cursor-pointer">
+          Cancelar
+        </button>
+      </form>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-3">
+      <span className={`flex-1 text-sm ${recurso.activo ? "text-ink" : "text-ink-muted line-through"}`}>
+        {recurso.nombre}
+      </span>
+      <button onClick={onEditar} className={enlaceSutil}>
+        Editar
+      </button>
+      <button onClick={onToggle} className={enlacePeligro}>
+        {recurso.activo ? "Desactivar" : "Activar"}
+      </button>
     </div>
   );
 }

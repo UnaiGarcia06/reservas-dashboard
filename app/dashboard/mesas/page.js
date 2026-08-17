@@ -28,7 +28,7 @@ export default async function MesasPage({ searchParams }) {
   const { negocioId, negocio } = await getNegocioActual(supabase);
 
   const modo = negocio?.config_capacidad?.modo ?? null;
-  const turnos = obtenerTurnos(negocioId);
+  const turnos = await obtenerTurnos(negocioId);
   const usaTurnos = modo === "turno" && turnos.length > 0;
 
   const hoy = new Date().toISOString().slice(0, 10);

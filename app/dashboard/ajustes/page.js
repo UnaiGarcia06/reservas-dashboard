@@ -7,11 +7,23 @@ export default async function AjustesPage() {
 
   const { negocioId, negocio } = await getNegocioActual(supabase);
 
+  const { data: zonas } = await supabase
+    .from("zonas")
+    .select("id, nombre, activa")
+    .eq("negocio_id", negocioId)
+    .order("orden", { ascending: true });
+
   const { data: recursos } = await supabase
     .from("recursos")
-    .select("id, nombre, activo")
+    .select("id, nombre, activo, zona_id")
     .eq("negocio_id", negocioId)
     .order("nombre", { ascending: true });
+
+  const { data: turnos } = await supabase
+    .from("turnos")
+    .select("id, nombre, inicio, fin")
+    .eq("negocio_id", negocioId)
+    .order("orden", { ascending: true });
 
   const { data: tiposServicio } = await supabase
     .from("tipos_servicio")
@@ -21,13 +33,15 @@ export default async function AjustesPage() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="font-display text-2xl mb-1">Ajustes del negocio</h1>
-      <p className="text-ink-600 text-sm mb-8">
-        Datos generales, turnos, recursos y tipos de servicio.
+      <h1 className="text-2xl font-semibold text-ink mb-1">Ajustes del negocio</h1>
+      <p className="text-ink-muted text-sm mb-8">
+        Datos generales, turnos, zonas y recursos, y tipos de servicio.
       </p>
       <AjustesForm
         negocio={negocio}
+        zonas={zonas || []}
         recursos={recursos || []}
+        turnos={turnos || []}
         tiposServicio={tiposServicio || []}
       />
     </div>

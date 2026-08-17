@@ -51,7 +51,7 @@ export default async function DashboardPage() {
   const { negocioId, negocio } = await getNegocioActual(supabase);
 
   const modo = negocio?.config_capacidad?.modo ?? null;
-  const turnos = obtenerTurnos(negocioId);
+  const turnos = await obtenerTurnos(negocioId);
 
   const { data: recursos } = await supabase
     .from("recursos")
