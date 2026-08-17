@@ -26,25 +26,6 @@ const ITEMS = [
     ),
   },
   {
-    href: "/dashboard/calendario",
-    label: "Calendario",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="w-4 h-4">
-        <rect x="3" y="4" width="18" height="17" rx="2" />
-        <path strokeLinecap="round" d="M3 9h18M8 2v4M16 2v4" />
-      </svg>
-    ),
-  },
-  {
-    href: "/dashboard/servicios",
-    label: "Servicios",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="w-4 h-4">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 14.4l-4.8 2.5.9-5.4-3.9-3.8 5.4-.8L12 2z" />
-      </svg>
-    ),
-  },
-  {
     href: "/dashboard/ajustes",
     label: "Configuración",
     icon: (

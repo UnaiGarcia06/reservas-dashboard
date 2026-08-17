@@ -12,6 +12,17 @@ import {
   toggleTipoServicioActivo,
 } from "@/lib/actions/negocio";
 
+const inputClass =
+  "w-full border border-surface-border rounded-btn px-3 py-2 text-sm mt-1 text-ink bg-surface-card focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-colors";
+
+const labelClass = "text-[11px] uppercase tracking-wider text-ink-muted font-mono";
+
+const botonPrimario =
+  "bg-ink text-white rounded-btn px-4 py-2 text-sm disabled:opacity-50 hover:opacity-90 transition-opacity";
+
+const enlaceSutil = "text-xs text-ink-muted underline cursor-pointer hover:text-ink";
+const enlacePeligro = "text-xs text-status-occupied underline cursor-pointer hover:opacity-80";
+
 export default function AjustesForm({ negocio, recursos, tiposServicio }) {
   const [nombre, setNombre] = useState(negocio?.nombre || "");
   const [guardandoNombre, setGuardandoNombre] = useState(false);
@@ -115,116 +126,94 @@ export default function AjustesForm({ negocio, recursos, tiposServicio }) {
   }
 
   return (
-    <div className="max-w-2xl space-y-8">
-      <section className="bg-white rounded-lg border border-paper-200 p-5">
-        <h2 className="font-display text-lg mb-4">Datos generales</h2>
+    <div className="max-w-2xl space-y-6">
+      <section className="bg-surface-card rounded-card border border-surface-border shadow-card p-5">
+        <h2 className="text-base font-semibold text-ink mb-4">Datos generales</h2>
         <form action={manejarGuardarNombre} className="flex items-end gap-3">
           <div className="flex-1">
-            <label className="text-xs uppercase tracking-wider text-ink-600 font-mono">
-              Nombre del negocio
-            </label>
+            <label className={labelClass}>Nombre del negocio</label>
             <input
               name="nombre"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
-              className="w-full border border-paper-200 rounded px-3 py-2 text-sm mt-1"
+              className={inputClass}
             />
           </div>
-          <button
-            type="submit"
-            disabled={guardandoNombre}
-            className="bg-ink-800 text-white rounded px-4 py-2 text-sm disabled:opacity-50"
-          >
+          <button type="submit" disabled={guardandoNombre} className={botonPrimario}>
             {guardandoNombre ? "..." : "Guardar"}
           </button>
         </form>
         {mensajeNombre && (
-          <p className="text-xs text-ink-600 mt-2">{mensajeNombre}</p>
+          <p className="text-xs text-ink-muted mt-2">{mensajeNombre}</p>
         )}
       </section>
 
-      <section className="bg-white rounded-lg border border-paper-200 p-5">
-        <h2 className="font-display text-lg mb-4">Turnos</h2>
+      <section className="bg-surface-card rounded-card border border-surface-border shadow-card p-5">
+        <h2 className="text-base font-semibold text-ink mb-4">Turnos</h2>
         <div className="space-y-3">
           {turnos.map((turno, index) => (
             <div key={index} className="flex items-end gap-2">
               <div className="flex-1">
-                <label className="text-xs uppercase tracking-wider text-ink-600 font-mono">
-                  Nombre
-                </label>
+                <label className={labelClass}>Nombre</label>
                 <input
                   value={turno.nombre}
                   onChange={(e) =>
                     actualizarTurnoLocal(index, "nombre", e.target.value)
                   }
-                  className="w-full border border-paper-200 rounded px-3 py-2 text-sm mt-1"
+                  className={inputClass}
                 />
               </div>
               <div>
-                <label className="text-xs uppercase tracking-wider text-ink-600 font-mono">
-                  Inicio
-                </label>
+                <label className={labelClass}>Inicio</label>
                 <input
                   type="time"
                   value={turno.inicio}
                   onChange={(e) =>
                     actualizarTurnoLocal(index, "inicio", e.target.value)
                   }
-                  className="border border-paper-200 rounded px-3 py-2 text-sm mt-1"
+                  className={inputClass}
                 />
               </div>
               <div>
-                <label className="text-xs uppercase tracking-wider text-ink-600 font-mono">
-                  Fin
-                </label>
+                <label className={labelClass}>Fin</label>
                 <input
                   type="time"
                   value={turno.fin}
                   onChange={(e) =>
                     actualizarTurnoLocal(index, "fin", e.target.value)
                   }
-                  className="border border-paper-200 rounded px-3 py-2 text-sm mt-1"
+                  className={inputClass}
                 />
               </div>
 
-              <button
-                onClick={() => quitarTurno(index)}
-                className="text-xs text-stamp-red underline cursor-pointer pb-2"
-              >
+              <button onClick={() => quitarTurno(index)} className={`${enlacePeligro} pb-2`}>
                 Quitar
               </button>
             </div>
           ))}
         </div>
 
-        <button
-          onClick={agregarTurno}
-          className="text-xs text-ink-600 underline cursor-pointer mt-3"
-        >
+        <button onClick={agregarTurno} className={`${enlaceSutil} mt-3 block`}>
           + Añadir turno
         </button>
 
         <div className="mt-4">
-          <button
-            onClick={manejarGuardarTurnos}
-            disabled={guardandoTurnos}
-            className="bg-ink-800 text-white rounded px-4 py-2 text-sm disabled:opacity-50"
-          >
+          <button onClick={manejarGuardarTurnos} disabled={guardandoTurnos} className={botonPrimario}>
             {guardandoTurnos ? "..." : "Guardar turnos"}
           </button>
           {mensajeTurnos && (
-            <p className="text-xs text-ink-600 mt-2">{mensajeTurnos}</p>
+            <p className="text-xs text-ink-muted mt-2">{mensajeTurnos}</p>
           )}
         </div>
       </section>
 
-      <section className="bg-white rounded-lg border border-paper-200 p-5">
-        <h2 className="font-display text-lg mb-4">Recursos</h2>
+      <section className="bg-surface-card rounded-card border border-surface-border shadow-card p-5">
+        <h2 className="text-base font-semibold text-ink mb-4">Recursos</h2>
         <div className="space-y-2">
           {recursos.map((recurso) => (
             <div
               key={recurso.id}
-              className="flex items-center gap-3 border-b border-paper-200 pb-2 last:border-0"
+              className="flex items-center gap-3 border-b border-surface-border pb-2 last:border-0"
             >
               {editandoRecursoId === recurso.id ? (
                 <form
@@ -236,18 +225,15 @@ export default function AjustesForm({ negocio, recursos, tiposServicio }) {
                   <input
                     name="nombre"
                     defaultValue={recurso.nombre}
-                    className="flex-1 border border-paper-200 rounded px-3 py-1 text-sm"
+                    className="flex-1 border border-surface-border rounded-btn px-3 py-1 text-sm bg-surface-card text-ink"
                   />
-                  <button
-                    type="submit"
-                    className="text-xs text-ink-800 underline cursor-pointer"
-                  >
+                  <button type="submit" className={enlaceSutil}>
                     Guardar
                   </button>
                   <button
                     type="button"
                     onClick={() => setEditandoRecursoId(null)}
-                    className="text-xs text-ink-600 cursor-pointer"
+                    className="text-xs text-ink-muted cursor-pointer"
                   >
                     Cancelar
                   </button>
@@ -256,14 +242,14 @@ export default function AjustesForm({ negocio, recursos, tiposServicio }) {
                 <>
                   <span
                     className={`flex-1 text-sm ${
-                      recurso.activo ? "" : "text-ink-600 line-through"
+                      recurso.activo ? "text-ink" : "text-ink-muted line-through"
                     }`}
                   >
                     {recurso.nombre}
                   </span>
                   <button
                     onClick={() => setEditandoRecursoId(recurso.id)}
-                    className="text-xs text-ink-600 underline cursor-pointer"
+                    className={enlaceSutil}
                   >
                     Editar
                   </button>
@@ -271,7 +257,7 @@ export default function AjustesForm({ negocio, recursos, tiposServicio }) {
                     onClick={() =>
                       manejarToggleActivo(recurso.id, recurso.activo)
                     }
-                    className="text-xs text-stamp-red underline cursor-pointer"
+                    className={enlacePeligro}
                   >
                     {recurso.activo ? "Desactivar" : "Activar"}
                   </button>
@@ -283,42 +269,38 @@ export default function AjustesForm({ negocio, recursos, tiposServicio }) {
 
         <form
           action={manejarCrearRecurso}
-          className="flex items-center gap-2 mt-4 pt-3 border-t border-paper-200"
+          className="flex items-center gap-2 mt-4 pt-3 border-t border-surface-border"
         >
           <input
             name="nombre"
             value={nombreNuevoRecurso}
             onChange={(e) => setNombreNuevoRecurso(e.target.value)}
             placeholder="Nombre del recurso"
-            className="flex-1 border border-paper-200 rounded px-3 py-2 text-sm"
+            className="flex-1 border border-surface-border rounded-btn px-3 py-2 text-sm bg-surface-card text-ink"
           />
           <input
             name="tipo"
             value={tipoNuevoRecurso}
             onChange={(e) => setTipoNuevoRecurso(e.target.value)}
             placeholder="Tipo (ej. silla, sala)"
-            className="flex-1 border border-paper-200 rounded px-3 py-2 text-sm"
+            className="flex-1 border border-surface-border rounded-btn px-3 py-2 text-sm bg-surface-card text-ink"
           />
-          <button
-            type="submit"
-            disabled={creandoRecurso}
-            className="bg-ink-800 text-white rounded px-4 py-2 text-sm disabled:opacity-50"
-          >
+          <button type="submit" disabled={creandoRecurso} className={botonPrimario}>
             {creandoRecurso ? "..." : "Añadir"}
           </button>
         </form>
         {mensajeRecurso && (
-          <p className="text-xs text-ink-600 mt-2">{mensajeRecurso}</p>
+          <p className="text-xs text-ink-muted mt-2">{mensajeRecurso}</p>
         )}
       </section>
 
-      <section className="bg-white rounded-lg border border-paper-200 p-5">
-        <h2 className="font-display text-lg mb-4">Tipos de servicio</h2>
+      <section className="bg-surface-card rounded-card border border-surface-border shadow-card p-5">
+        <h2 className="text-base font-semibold text-ink mb-4">Tipos de servicio</h2>
         <div className="space-y-2">
           {(tiposServicio || []).map((tipo) => (
             <div
               key={tipo.id}
-              className="flex items-center gap-3 border-b border-paper-200 pb-2 last:border-0"
+              className="flex items-center gap-3 border-b border-surface-border pb-2 last:border-0"
             >
               {editandoTipoId === tipo.id ? (
                 <form
@@ -330,24 +312,21 @@ export default function AjustesForm({ negocio, recursos, tiposServicio }) {
                   <input
                     name="nombre"
                     defaultValue={tipo.nombre}
-                    className="flex-1 border border-paper-200 rounded px-3 py-1 text-sm"
+                    className="flex-1 border border-surface-border rounded-btn px-3 py-1 text-sm bg-surface-card text-ink"
                   />
                   <input
                     name="duracion_minutos"
                     type="number"
                     defaultValue={tipo.duracion_minutos}
-                    className="w-20 border border-paper-200 rounded px-3 py-1 text-sm"
+                    className="w-20 border border-surface-border rounded-btn px-3 py-1 text-sm bg-surface-card text-ink"
                   />
-                  <button
-                    type="submit"
-                    className="text-xs text-ink-800 underline cursor-pointer"
-                  >
+                  <button type="submit" className={enlaceSutil}>
                     Guardar
                   </button>
                   <button
                     type="button"
                     onClick={() => setEditandoTipoId(null)}
-                    className="text-xs text-ink-600 cursor-pointer"
+                    className="text-xs text-ink-muted cursor-pointer"
                   >
                     Cancelar
                   </button>
@@ -356,14 +335,14 @@ export default function AjustesForm({ negocio, recursos, tiposServicio }) {
                 <>
                   <span
                     className={`flex-1 text-sm ${
-                      tipo.activo ? "" : "text-ink-600 line-through"
+                      tipo.activo ? "text-ink" : "text-ink-muted line-through"
                     }`}
                   >
                     {tipo.nombre} · {tipo.duracion_minutos} min
                   </span>
                   <button
                     onClick={() => setEditandoTipoId(tipo.id)}
-                    className="text-xs text-ink-600 underline cursor-pointer"
+                    className={enlaceSutil}
                   >
                     Editar
                   </button>
@@ -371,7 +350,7 @@ export default function AjustesForm({ negocio, recursos, tiposServicio }) {
                     onClick={() =>
                       manejarToggleTipoActivo(tipo.id, tipo.activo)
                     }
-                    className="text-xs text-stamp-red underline cursor-pointer"
+                    className={enlacePeligro}
                   >
                     {tipo.activo ? "Desactivar" : "Activar"}
                   </button>
@@ -383,14 +362,14 @@ export default function AjustesForm({ negocio, recursos, tiposServicio }) {
 
         <form
           action={manejarCrearTipoServicio}
-          className="flex items-center gap-2 mt-4 pt-3 border-t border-paper-200"
+          className="flex items-center gap-2 mt-4 pt-3 border-t border-surface-border"
         >
           <input
             name="nombre"
             value={nombreNuevoTipo}
             onChange={(e) => setNombreNuevoTipo(e.target.value)}
             placeholder="Nombre del servicio"
-            className="flex-1 border border-paper-200 rounded px-3 py-2 text-sm"
+            className="flex-1 border border-surface-border rounded-btn px-3 py-2 text-sm bg-surface-card text-ink"
           />
           <input
             name="duracion_minutos"
@@ -398,21 +377,16 @@ export default function AjustesForm({ negocio, recursos, tiposServicio }) {
             value={duracionNuevoTipo}
             onChange={(e) => setDuracionNuevoTipo(e.target.value)}
             placeholder="Min."
-            className="w-24 border border-paper-200 rounded px-3 py-2 text-sm"
+            className="w-24 border border-surface-border rounded-btn px-3 py-2 text-sm bg-surface-card text-ink"
           />
-          <button
-            type="submit"
-            disabled={creandoTipo}
-            className="bg-ink-800 text-white rounded px-4 py-2 text-sm disabled:opacity-50"
-          >
+          <button type="submit" disabled={creandoTipo} className={botonPrimario}>
             {creandoTipo ? "..." : "Añadir"}
           </button>
         </form>
         {mensajeTipo && (
-          <p className="text-xs text-ink-600 mt-2">{mensajeTipo}</p>
+          <p className="text-xs text-ink-muted mt-2">{mensajeTipo}</p>
         )}
       </section>
     </div>
   );
 }
-

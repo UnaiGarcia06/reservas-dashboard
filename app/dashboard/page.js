@@ -99,7 +99,7 @@ export default async function DashboardPage() {
   const fechas = Object.keys(gruposPorFecha).sort();
 
   return (
-    <div className="max-w-4xl">
+    <div className="max-w-5xl">
       <div className="flex items-start justify-between mb-1">
         <h1 className="text-2xl font-semibold text-ink">Lista de Reservas</h1>
         <ReservationModal
@@ -123,7 +123,7 @@ export default async function DashboardPage() {
           </p>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-8">
           {fechas.map((fecha) => {
             const reservasDelDia = gruposPorFecha[fecha];
 
@@ -136,19 +136,19 @@ export default async function DashboardPage() {
 
             return (
               <div key={fecha}>
-                <h2 className="text-[11px] uppercase tracking-wider text-ink-muted font-mono mb-1.5">
+                <h2 className="text-sm font-semibold text-ink mb-2 capitalize">
                   {formatearFecha(fecha)}
                 </h2>
                 <div className="bg-surface-card rounded-card border border-surface-border shadow-card overflow-hidden">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-surface-border text-left text-[11px] uppercase tracking-wide text-ink-muted">
-                        <th className="px-3 py-2 font-medium w-16">Hora</th>
-                        <th className="px-3 py-2 font-medium">Cliente</th>
-                        <th className="px-3 py-2 font-medium w-20 text-right">Nº Pax</th>
-                        <th className="px-3 py-2 font-medium w-32">Mesa/Zona</th>
-                        <th className="px-3 py-2 font-medium w-24">Estado</th>
-                        <th className="px-3 py-2 font-medium w-44 text-right">Acciones</th>
+                      <tr className="border-b border-surface-border bg-surface text-left text-[11px] uppercase tracking-wide text-ink-muted">
+                        <th className="px-4 py-2.5 font-medium w-16">Hora</th>
+                        <th className="px-4 py-2.5 font-medium">Cliente</th>
+                        <th className="px-4 py-2.5 font-medium w-20 text-right">Nº Pax</th>
+                        <th className="px-4 py-2.5 font-medium w-36">Mesa/Zona</th>
+                        <th className="px-4 py-2.5 font-medium w-28">Estado</th>
+                        <th className="px-4 py-2.5 font-medium w-48 text-right">Acciones</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -156,7 +156,7 @@ export default async function DashboardPage() {
                         ? subgrupos.map((grupo) => (
                             <Fragment key={grupo.nombre}>
                               <tr>
-                                <td colSpan={6} className="px-3 pt-3 pb-1">
+                                <td colSpan={6} className="px-4 pt-3 pb-1 bg-surface-card">
                                   <GroupLabel>{grupo.nombre}</GroupLabel>
                                 </td>
                               </tr>

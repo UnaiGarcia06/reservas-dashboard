@@ -28,27 +28,29 @@ export default function ReservationRow({ reserva, modo, recursos, turnos, todasR
 
   return (
     <tr className="border-b border-surface-border last:border-0 hover:bg-surface transition-colors">
-      <td className="px-3 py-2.5 font-mono text-sm text-ink">{reserva.hora}</td>
-
-      <td className="px-3 py-2.5 min-w-0">
-        <div className="text-sm font-medium text-ink truncate">{reserva.nombre_cliente}</div>
-        <div className="text-xs text-ink-muted font-mono">{reserva.telefono}</div>
+      <td className="px-4 py-3.5 font-mono text-sm font-medium text-ink">
+        {reserva.hora?.slice(0, 5)}
       </td>
 
-      <td className="px-3 py-2.5 text-sm font-mono text-ink text-right">
+      <td className="px-4 py-3.5 min-w-0">
+        <div className="text-sm font-semibold text-ink truncate">{reserva.nombre_cliente}</div>
+        <div className="text-xs text-ink-muted font-mono mt-0.5">{reserva.telefono}</div>
+      </td>
+
+      <td className="px-4 py-3.5 text-sm font-mono text-ink text-right">
         {reserva.personas}
       </td>
 
-      <td className="px-3 py-2.5 text-sm text-ink-muted">
+      <td className="px-4 py-3.5 text-sm text-ink-muted">
         {reserva.recurso_nombres || "—"}
       </td>
 
-      <td className="px-3 py-2.5">
+      <td className="px-4 py-3.5">
         <StatusStamp estado={reserva.estado} />
       </td>
 
-      <td className="px-3 py-2.5">
-        <div className="flex items-center justify-end gap-1">
+      <td className="px-4 py-3.5">
+        <div className="flex items-center justify-end gap-1.5">
           <ReservationModal
             modo={modo}
             recursos={recursos}
@@ -63,7 +65,7 @@ export default function ReservationRow({ reserva, modo, recursos, turnos, todasR
           />
 
           {confirmando ? (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               <Button
                 variant="danger"
                 size="sm"
