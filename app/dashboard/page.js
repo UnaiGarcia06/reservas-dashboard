@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getNegocioActual } from "@/lib/negocio";
 import ReservationRow from "@/components/ReservationRow";
 import ReservationModal from "@/components/ReservationModal";
-import ReservationModalSlot from "@/components/ReservationModalSlot";
+import ReservationModalSlot from "@/components/reservasSlot";
 import GroupLabel from "@/components/GroupLabel";
 import DashboardSummary from "@/components/DashboardSummary";
 import Button from "@/components/Button";
