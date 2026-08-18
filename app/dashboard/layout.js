@@ -17,6 +17,7 @@ export default async function DashboardLayout({ children }) {
   const { negocio, rol, negocios } = await getNegocioActual(supabase);
 
   const icono = ICONOS_TIPO[negocio?.tipo_negocio] || "📋";
+  const modo = negocio?.config_capacidad?.modo;
 
   return (
     <ToastProvider>
@@ -39,7 +40,7 @@ export default async function DashboardLayout({ children }) {
               </div>
             )}
 
-            <SidebarNav />
+            <SidebarNav modo={modo} />
           </div>
 
           <div className="pt-4 border-t border-sidebar-hover">

@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const ITEMS = [
+const ITEMS_BASE = [
   {
     href: "/dashboard",
     label: "Lista de Reservas",
+    labelSlot: "Calendario de Reservas",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="w-4 h-4">
         <path strokeLinecap="round" strokeLinejoin="round" d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
@@ -16,6 +17,7 @@ const ITEMS = [
   {
     href: "/dashboard/mesas",
     label: "Ocupación y Mesas",
+    soloModo: "turno",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="w-4 h-4">
         <rect x="3" y="3" width="7" height="7" rx="1" />
@@ -37,13 +39,16 @@ const ITEMS = [
   },
 ];
 
-export default function SidebarNav() {
+export default function SidebarNav({ modo }) {
   const pathname = usePathname();
+
+  const items = ITEMS_BASE.filter((item) => !item.soloModo || item.soloModo === modo);
 
   return (
     <nav className="space-y-0.5">
-      {ITEMS.map((item) => {
+      {items.map((item) => {
         const activo = pathname === item.href;
+        const etiqueta = modo === "slot" && item.labelSlot ? item.labelSlot : item.label;
         return (
           <Link
             key={item.href}
@@ -55,7 +60,7 @@ export default function SidebarNav() {
             }`}
           >
             {item.icon}
-            {item.label}
+            {etiqueta}
           </Link>
         );
       })}
