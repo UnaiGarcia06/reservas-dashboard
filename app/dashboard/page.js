@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getNegocioActual } from "@/lib/negocio";
 import ReservationRow from "@/components/ReservationRow";
 import ReservationModal from "@/components/ReservationModal";
+import ReservationModalSlot from "@/components/ReservationModalSlot";
 import GroupLabel from "@/components/GroupLabel";
 import DashboardSummary from "@/components/DashboardSummary";
 import Button from "@/components/Button";
@@ -10,6 +11,7 @@ import FiltroFecha from "@/components/FiltroFecha";
 import AgendaCalendario from "@/components/AgendaCalendario";
 import { agruparPorTurno } from "@/lib/turnos";
 import { obtenerTurnos } from "@/lib/turnosPorNegocio";
+import { obtenerFranjaDelDia } from "@/lib/horario";
 
 function agruparPorFecha(reservas) {
   const grupos = {};
@@ -45,25 +47,6 @@ function formatearFecha(fechaISO) {
     day: "numeric",
     month: "long",
   });
-}
-
-function obtenerFranjaDelDia(horario, fecha) {
-  const dias = ["domingo", "lunes", "martes", "miercoles", "jueves", "viernes", "sabado"];
-  const fechaObj = new Date(fecha + "T00:00:00");
-  const diaKey = dias[fechaObj.getDay()];
-  const config = horario?.[diaKey];
-
-  if (!config || !config.abierto || !config.franjas || config.franjas.length === 0) {
-    return null;
-  }
-
-  let inicio = config.franjas[0][0];
-  let fin = config.franjas[0][1];
-  for (const f of config.franjas) {
-    if (f[0] < inicio) inicio = f[0];
-    if (f[1] > fin) fin = f[1];
-  }
-  return { inicio, fin };
 }
 
 export default async function DashboardPage({ searchParams }) {
@@ -114,9 +97,11 @@ export default async function DashboardPage({ searchParams }) {
       <div>
         <div className="flex items-start justify-between mb-1">
           <h1 className="text-2xl font-semibold text-ink">Calendario de Reservas</h1>
-          <Button disabled title="Próximamente">
-            + Nueva reserva
-          </Button>
+          <ReservationModalSlot
+            empleados={empleados || []}
+            servicios={servicios || []}
+            trigger={<Button>+ Nueva reserva</Button>}
+          />
         </div>
         <p className="text-ink-muted text-sm mb-4 capitalize">{formatearFecha(fecha)}</p>
 
