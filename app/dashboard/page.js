@@ -6,6 +6,8 @@ import ReservationModal from "@/components/ReservationModal";
 import GroupLabel from "@/components/GroupLabel";
 import DashboardSummary from "@/components/DashboardSummary";
 import Button from "@/components/Button";
+import FiltroFecha from "@/components/FiltroFecha";
+import AgendaCalendario from "@/components/AgendaCalendario";
 import { agruparPorTurno } from "@/lib/turnos";
 import { obtenerTurnos } from "@/lib/turnosPorNegocio";
 
@@ -45,12 +47,100 @@ function formatearFecha(fechaISO) {
   });
 }
 
-export default async function DashboardPage() {
+function obtenerFranjaDelDia(horario, fecha) {
+  const dias = ["domingo", "lunes", "martes", "miercoles", "jueves", "viernes", "sabado"];
+  const fechaObj = new Date(fecha + "T00:00:00");
+  const diaKey = dias[fechaObj.getDay()];
+  const config = horario?.[diaKey];
+
+  if (!config || !config.abierto || !config.franjas || config.franjas.length === 0) {
+    return null;
+  }
+
+  let inicio = config.franjas[0][0];
+  let fin = config.franjas[0][1];
+  for (const f of config.franjas) {
+    if (f[0] < inicio) inicio = f[0];
+    if (f[1] > fin) fin = f[1];
+  }
+  return { inicio, fin };
+}
+
+export default async function DashboardPage({ searchParams }) {
   const supabase = createClient();
-
   const { negocioId, negocio } = await getNegocioActual(supabase);
-
   const modo = negocio?.config_capacidad?.modo ?? null;
+
+  // ---------- Modo "slot" (peluquería, spa, clínica...) ----------
+  if (modo === "slot") {
+    const hoy = new Date().toISOString().slice(0, 10);
+    const fecha = searchParams?.fecha || hoy;
+
+    const { data: empleados } = await supabase
+      .from("recursos")
+      .select("id, nombre, color, activo")
+      .eq("negocio_id", negocioId)
+      .eq("tipo", "empleado")
+      .eq("activo", true)
+      .order("nombre", { ascending: true });
+
+    const { data: servicios } = await supabase
+      .from("tipos_servicio")
+      .select("id, nombre, duracion_minutos, precio, activo")
+      .eq("negocio_id", negocioId)
+      .eq("activo", true)
+      .order("nombre", { ascending: true });
+
+    const { data: citas } = await supabase
+      .from("citas")
+      .select(
+        "id, nombre_cliente, telefono, hora, estado, tipo_servicio_id, recurso_id, recurso_ids, duracion_minutos"
+      )
+      .eq("negocio_id", negocioId)
+      .eq("fecha", fecha)
+      .neq("estado", "Cancelada");
+
+    const mapaServicios = {};
+    for (const s of servicios || []) mapaServicios[s.id] = s.nombre;
+
+    const citasFormateadas = (citas || []).map((c) => ({
+      ...c,
+      servicio_nombre: mapaServicios[c.tipo_servicio_id] || null,
+    }));
+
+    const franja = obtenerFranjaDelDia(negocio?.horario, fecha);
+
+    return (
+      <div>
+        <div className="flex items-start justify-between mb-1">
+          <h1 className="text-2xl font-semibold text-ink">Calendario de Reservas</h1>
+          <Button disabled title="Próximamente">
+            + Nueva reserva
+          </Button>
+        </div>
+        <p className="text-ink-muted text-sm mb-4 capitalize">{formatearFecha(fecha)}</p>
+
+        <div className="mb-4 max-w-xs">
+          <FiltroFecha fecha={fecha} />
+        </div>
+
+        {franja ? (
+          <AgendaCalendario
+            empleados={empleados || []}
+            citas={citasFormateadas}
+            franja={franja}
+            esHoy={fecha === hoy}
+          />
+        ) : (
+          <div className="border border-dashed border-surface-border rounded-card p-10 text-center">
+            <p className="text-sm text-ink-muted">El negocio está cerrado este día.</p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ---------- Modo "turno" (restaurante) — sin cambios ----------
   const turnos = await obtenerTurnos(negocioId);
 
   const { data: recursos } = await supabase
