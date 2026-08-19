@@ -15,9 +15,6 @@ import {
   actualizarRecurso,
   toggleRecursoActivo,
   eliminarRecurso,
-  crearTipoServicio,
-  actualizarTipoServicio,
-  toggleTipoServicioActivo,
 } from "@/lib/actions/negocio";
 
 const inputClass =
@@ -40,7 +37,7 @@ function Seccion({ titulo, children }) {
   );
 }
 
-export default function AjustesForm({ negocio, zonas, recursos, turnos, tiposServicio }) {
+export default function AjustesForm({ negocio, zonas, recursos, turnos }) {
   // ---------- Datos generales ----------
   const [nombre, setNombre] = useState(negocio?.nombre || "");
   const [guardandoNombre, setGuardandoNombre] = useState(false);
@@ -190,35 +187,6 @@ export default function AjustesForm({ negocio, zonas, recursos, turnos, tiposSer
     setMensajeRecurso(null);
     const resultado = await eliminarRecurso(id);
     if (resultado?.error) setMensajeRecurso(resultado.error);
-  }
-
-  // ---------- Tipos de servicio ----------
-  const [nombreNuevoTipo, setNombreNuevoTipo] = useState("");
-  const [duracionNuevoTipo, setDuracionNuevoTipo] = useState("");
-  const [creandoTipo, setCreandoTipo] = useState(false);
-  const [mensajeTipo, setMensajeTipo] = useState(null);
-  const [editandoTipoId, setEditandoTipoId] = useState(null);
-
-  async function manejarCrearTipoServicio(formData) {
-    setCreandoTipo(true);
-    setMensajeTipo(null);
-    const resultado = await crearTipoServicio(formData);
-    setCreandoTipo(false);
-    if (resultado?.error) {
-      setMensajeTipo(resultado.error);
-    } else {
-      setNombreNuevoTipo("");
-      setDuracionNuevoTipo("");
-    }
-  }
-
-  async function manejarActualizarTipoServicio(id, formData) {
-    const resultado = await actualizarTipoServicio(id, formData);
-    if (!resultado?.error) setEditandoTipoId(null);
-  }
-
-  async function manejarToggleTipoActivo(id, activoActual) {
-    await toggleTipoServicioActivo(id, !activoActual);
   }
 
   return (
@@ -508,91 +476,6 @@ export default function AjustesForm({ negocio, zonas, recursos, turnos, tiposSer
         </form>
         {mensajeRecurso && <p className="text-xs text-status-occupied mt-2">{mensajeRecurso}</p>}
         {mensajeZona && <p className="text-xs text-ink-muted mt-2">{mensajeZona}</p>}
-      </Seccion>
-
-      {/* Tipos de servicio */}
-      <Seccion titulo="Tipos de servicio">
-        <div className="space-y-2">
-          {(tiposServicio || []).map((tipo) => (
-            <div
-              key={tipo.id}
-              className="flex items-center gap-3 border-b border-surface-border pb-2 last:border-0"
-            >
-              {editandoTipoId === tipo.id ? (
-                <form
-                  action={(formData) => manejarActualizarTipoServicio(tipo.id, formData)}
-                  className="flex items-center gap-2 flex-1"
-                >
-                  <input
-                    name="nombre"
-                    defaultValue={tipo.nombre}
-                    className="flex-1 border border-surface-border rounded-btn px-3 py-1 text-sm bg-surface-card text-ink"
-                  />
-                  <input
-                    name="duracion_minutos"
-                    type="number"
-                    defaultValue={tipo.duracion_minutos}
-                    className="w-20 border border-surface-border rounded-btn px-3 py-1 text-sm bg-surface-card text-ink"
-                  />
-                  <button type="submit" className={enlaceSutil}>
-                    Guardar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditandoTipoId(null)}
-                    className="text-xs text-ink-muted cursor-pointer"
-                  >
-                    Cancelar
-                  </button>
-                </form>
-              ) : (
-                <>
-                  <span
-                    className={`flex-1 text-sm ${
-                      tipo.activo ? "text-ink" : "text-ink-muted line-through"
-                    }`}
-                  >
-                    {tipo.nombre} · {tipo.duracion_minutos} min
-                  </span>
-                  <button onClick={() => setEditandoTipoId(tipo.id)} className={enlaceSutil}>
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => manejarToggleTipoActivo(tipo.id, tipo.activo)}
-                    className={enlacePeligro}
-                  >
-                    {tipo.activo ? "Desactivar" : "Activar"}
-                  </button>
-                </>
-              )}
-            </div>
-          ))}
-        </div>
-
-        <form
-          action={manejarCrearTipoServicio}
-          className="flex items-center gap-2 mt-4 pt-3 border-t border-surface-border"
-        >
-          <input
-            name="nombre"
-            value={nombreNuevoTipo}
-            onChange={(e) => setNombreNuevoTipo(e.target.value)}
-            placeholder="Nombre del servicio"
-            className="flex-1 border border-surface-border rounded-btn px-3 py-2 text-sm bg-surface-card text-ink"
-          />
-          <input
-            name="duracion_minutos"
-            type="number"
-            value={duracionNuevoTipo}
-            onChange={(e) => setDuracionNuevoTipo(e.target.value)}
-            placeholder="Min."
-            className="w-24 border border-surface-border rounded-btn px-3 py-2 text-sm bg-surface-card text-ink"
-          />
-          <button type="submit" disabled={creandoTipo} className={botonPrimario}>
-            {creandoTipo ? "..." : "Añadir"}
-          </button>
-        </form>
-        {mensajeTipo && <p className="text-xs text-ink-muted mt-2">{mensajeTipo}</p>}
       </Seccion>
 
       {/* Diálogo de confirmación para eliminar zona */}

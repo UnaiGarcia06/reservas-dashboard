@@ -88,7 +88,6 @@ export default async function AjustesPage() {
             turnos={turnos}
             zonas={zonas || []}
             recursos={recursos || []}
-            servicios={[]}
           />
 
           {/* Módulo intuitivo de gestión de días de cierre/excepciones */}
