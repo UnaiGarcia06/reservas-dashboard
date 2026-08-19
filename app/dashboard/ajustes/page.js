@@ -10,7 +10,7 @@ import SeccionTiposServicio from "@/components/ajustes/SeccionTiposServicio";
 export default async function AjustesPage() {
   const supabase = createClient();
   const { negocioId, negocio } = await getNegocioActual(supabase);
-  const modo = negocio?.config_capacidad?.modo ?? null;
+  const modo = negocio?.config_capacidad?.modo ?? "slot";
 
   const [turnos, { data: recursos }, { data: zonas }, { data: servicios }] =
     await Promise.all([
