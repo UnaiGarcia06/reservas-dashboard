@@ -87,7 +87,16 @@ export default async function AjustesPage() {
             negocio={negocio}
             turnos={turnos}
             zonas={zonas || []}
-            recursos={recursos || []}
+            recursos={(recursos || []).filter(
+              (r) => (r.tipo ?? "mesa") !== "empleado"
+            )}
+          />
+
+          <SeccionEmpleados
+            items={recursos || []}
+            titulo="Empleados / Personal"
+            placeholder="Nombre del empleado..."
+            tipo="empleado"
           />
 
           {/* Módulo intuitivo de gestión de días de cierre/excepciones */}
