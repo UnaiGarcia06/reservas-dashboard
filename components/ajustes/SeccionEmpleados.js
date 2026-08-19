@@ -8,7 +8,12 @@ import { createClient } from "@/lib/supabase/client";
 const inputClass =
   "border border-surface-border rounded-btn px-3 py-1.5 text-sm bg-surface-card text-ink focus:outline-none focus:ring-1 focus:ring-brand";
 
-export default function SeccionEmpleados({ empleados = [] }) {
+export default function SeccionEmpleados({ 
+  items = [], 
+  titulo = "Empleados", 
+  placeholder = "Nombre del empleado...", 
+  tipo = "empleado" 
+}) {
   const [nuevoNombre, setNuevoNombre] = useState("");
   const [editandoId, setEditandoId] = useState(null);
   const [nombreEdit, setNombreEdit] = useState("");
@@ -16,18 +21,19 @@ export default function SeccionEmpleados({ empleados = [] }) {
   const { mostrarToast } = useToast();
   const supabase = createClient();
 
+  // Filtramos solo los elementos del tipo correspondiente
+  const listaFiltrada = items.filter((item) => (item.tipo ?? "empleado") === tipo);
+
   async function handleCrear(e) {
     e.preventDefault();
     if (!nuevoNombre.trim()) return;
 
     setCargando(true);
-    
-    // Obtener negocio_id de la sesión o del primer empleado
-    const negocioId = empleados[0]?.negocio_id;
+    const negocioId = items[0]?.negocio_id;
 
     const { error } = await supabase.from("recursos").insert({
       nombre: nuevoNombre.trim(),
-      tipo: "empleado",
+      tipo: tipo,
       activo: true,
       ...(negocioId ? { negocio_id: negocioId } : {}),
     });
@@ -38,7 +44,7 @@ export default function SeccionEmpleados({ empleados = [] }) {
       mostrarToast(error.message, "error");
     } else {
       setNuevoNombre("");
-      mostrarToast("Empleado añadido.", "exito");
+      mostrarToast(`${titulo} añadido correctamente.`, "exito");
       window.location.reload();
     }
   }
@@ -58,7 +64,7 @@ export default function SeccionEmpleados({ empleados = [] }) {
       mostrarToast(error.message, "error");
     } else {
       setEditandoId(null);
-      mostrarToast("Empleado actualizado.", "exito");
+      mostrarToast("Actualizado correctamente.", "exito");
       window.location.reload();
     }
   }
@@ -72,22 +78,19 @@ export default function SeccionEmpleados({ empleados = [] }) {
     if (error) {
       mostrarToast(error.message, "error");
     } else {
-      mostrarToast(
-        activoActual ? "Empleado desactivado." : "Empleado activado.",
-        "exito"
-      );
+      mostrarToast(activoActual ? "Desactivado." : "Activado.", "exito");
       window.location.reload();
     }
   }
 
   return (
     <div className="bg-surface-card border border-surface-border rounded-card p-5 space-y-4">
-      <h2 className="text-base font-semibold text-ink">Recursos y Empleados</h2>
+      <h2 className="text-base font-semibold text-ink">{titulo}</h2>
 
       <div className="divide-y divide-surface-border">
-        {empleados.map((emp) => (
-          <div key={emp.id} className="py-2.5 flex items-center justify-between text-sm">
-            {editandoId === emp.id ? (
+        {listaFiltrada.map((item) => (
+          <div key={item.id} className="py-2.5 flex items-center justify-between text-sm">
+            {editandoId === item.id ? (
               <div className="flex items-center gap-2 flex-1 mr-4">
                 <input
                   type="text"
@@ -97,7 +100,7 @@ export default function SeccionEmpleados({ empleados = [] }) {
                 />
                 <button
                   type="button"
-                  onClick={() => handleGuardarEdit(emp.id)}
+                  onClick={() => handleGuardarEdit(item.id)}
                   className="text-xs text-brand hover:underline font-medium"
                 >
                   Guardar
@@ -111,18 +114,18 @@ export default function SeccionEmpleados({ empleados = [] }) {
                 </button>
               </div>
             ) : (
-              <span className={`font-medium ${!emp.activo ? "line-through text-ink-muted" : "text-ink"}`}>
-                {emp.nombre}
+              <span className={`font-medium ${!item.activo ? "line-through text-ink-muted" : "text-ink"}`}>
+                {item.nombre}
               </span>
             )}
 
-            {editandoId !== emp.id && (
+            {editandoId !== item.id && (
               <div className="flex items-center gap-3 text-xs">
                 <button
                   type="button"
                   onClick={() => {
-                    setEditandoId(emp.id);
-                    setNombreEdit(emp.nombre);
+                    setEditandoId(item.id);
+                    setNombreEdit(item.nombre);
                   }}
                   className="text-ink-muted hover:text-ink underline"
                 >
@@ -130,25 +133,25 @@ export default function SeccionEmpleados({ empleados = [] }) {
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleToggleEstado(emp.id, emp.activo)}
-                  className={emp.activo ? "text-status-occupied hover:underline" : "text-brand hover:underline"}
+                  onClick={() => handleToggleEstado(item.id, item.activo)}
+                  className={item.activo ? "text-status-occupied hover:underline" : "text-brand hover:underline"}
                 >
-                  {emp.activo ? "Desactivar" : "Activar"}
+                  {item.activo ? "Desactivar" : "Activar"}
                 </button>
               </div>
             )}
           </div>
         ))}
 
-        {empleados.length === 0 && (
-          <p className="text-xs text-ink-muted py-2">No hay empleados registrados.</p>
+        {listaFiltrada.length === 0 && (
+          <p className="text-xs text-ink-muted py-2">No hay ningún registro asignado.</p>
         )}
       </div>
 
       <form onSubmit={handleCrear} className="flex gap-2 pt-2">
         <input
           type="text"
-          placeholder="Nombre del profesional..."
+          placeholder={placeholder}
           value={nuevoNombre}
           onChange={(e) => setNuevoNombre(e.target.value)}
           className={`${inputClass} flex-1`}
