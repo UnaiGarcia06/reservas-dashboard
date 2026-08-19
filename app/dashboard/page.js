@@ -99,6 +99,7 @@ export default async function DashboardPage({ searchParams }) {
           <ReservationModal
             modo={modo}
             recursos={empleados || []}
+            servicios={servicios || []}
             trigger={<Button>+ Nueva reserva</Button>}
           />
         </div>

@@ -30,7 +30,8 @@ function BotonOpcion({ activo, onClick, children }) {
 
 export default function ReservationModal({
   modo,
-  recursos,
+  recursos = [],
+  servicios = [],
   turnos = [],
   todasReservas = [],
   reserva = null,
@@ -42,7 +43,7 @@ export default function ReservationModal({
   const { mostrarToast } = useToast();
 
   const esEdicion = !!reserva;
-  const usaTurnos = turnos && turnos.length > 0;
+  const usaTurnos = modo === "turno" || (turnos && turnos.length > 0);
 
   const mesasAsignadasInicial = (
     reserva?.recurso_ids && reserva.recurso_ids.length > 0
@@ -122,12 +123,12 @@ export default function ReservationModal({
         <div className="fixed inset-0 bg-sidebar/50 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
           <div className="bg-surface-card rounded-panel border border-surface-border w-full max-w-md p-6 shadow-elevated max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-semibold mb-5 text-ink">
-              {esEdicion ? "Editar reserva" : "Nueva reserva"}
+              {esEdicion ? "Editar cita" : "Nueva cita"}
             </h2>
 
             <form action={manejarSubmit} className="space-y-3.5">
               <div>
-                <label className={labelClass}>Nombre</label>
+                <label className={labelClass}>Nombre Cliente</label>
                 <input
                   name="nombre_cliente"
                   defaultValue={reserva?.nombre_cliente || ""}
@@ -146,130 +147,161 @@ export default function ReservationModal({
                 />
               </div>
 
-              <div>
-                <label className={labelClass}>Fecha</label>
-                <input
-                  type="date"
-                  name="fecha"
-                  value={fecha}
-                  onChange={(e) => setFecha(e.target.value)}
-                  required
-                  className={inputClass}
-                />
-              </div>
-
-              {usaTurnos ? (
-                <>
-                  <div>
-                    <label className={labelClass}>Turno</label>
-                    <div className="flex gap-2 mt-1">
-                      {turnos.map((turno) => (
-                        <BotonOpcion
-                          key={turno.nombre}
-                          activo={turnoActivo === turno.nombre}
-                          onClick={() => manejarClicTurno(turno)}
-                        >
-                          {turno.nombre}
-                        </BotonOpcion>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className={labelClass}>Hora</label>
-                    <input
-                      type="hidden"
-                      name="hora"
-                      value={hora ? `${hora}:00` : ""}
-                      required
-                    />
-                    <input
-                      type="time"
-                      value={hora}
-                      onChange={(e) => setHora(e.target.value)}
-                      disabled={!turnoSeleccionado}
-                      min={turnoSeleccionado?.inicio?.slice(0, 5)}
-                      max={turnoSeleccionado?.fin?.slice(0, 5)}
-                      className={inputClass}
-                    />
-                    {!turnoSeleccionado && (
-                      <p className="text-xs text-ink-muted mt-1">
-                        Elige primero un turno.
-                      </p>
-                    )}
-                  </div>
-
-                  {zonas.length > 1 && (
-                    <div>
-                      <label className={labelClass}>Zona</label>
-                      <div className="flex gap-2 mt-1">
-                        {zonas.map((zona) => (
-                          <BotonOpcion
-                            key={zona}
-                            activo={zonaActiva === zona}
-                            onClick={() => setZonaActiva(zona)}
-                          >
-                            {zona}
-                          </BotonOpcion>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </>
-              ) : (
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className={labelClass}>Hora</label>
+                  <label className={labelClass}>Fecha</label>
                   <input
-                    type="time"
-                    name="hora"
-                    defaultValue={reserva?.hora || ""}
+                    type="date"
+                    name="fecha"
+                    value={fecha}
+                    onChange={(e) => setFecha(e.target.value)}
                     required
                     className={inputClass}
                   />
                 </div>
-              )}
 
-              <div>
-                <label className={labelClass}>Personas</label>
-                <input
-                  type="number"
-                  name="personas"
-                  min="1"
-                  defaultValue={reserva?.personas || ""}
-                  className={inputClass}
-                />
+                {!usaTurnos && (
+                  <div>
+                    <label className={labelClass}>Hora</label>
+                    <input
+                      type="time"
+                      name="hora"
+                      value={hora}
+                      onChange={(e) => setHora(e.target.value)}
+                      required
+                      className={inputClass}
+                    />
+                  </div>
+                )}
               </div>
 
-              {recursos && recursos.length > 0 && (usaTurnos ? zonaActiva : true) && (
-                <div>
-                  <label className={labelClass}>
-                    Mesas (Ctrl/Cmd + clic para varias)
-                  </label>
-                  {usaTurnos && !hora ? (
-                    <p className="text-xs text-ink-muted mt-1">
-                      Elige turno y hora para ver las mesas libres.
-                    </p>
-                  ) : (
-                    <select
-                      key={zonaActiva || "sin-zona"}
-                      name="recurso_ids"
-                      multiple
-                      defaultValue={mesasAsignadasInicial}
-                      className={`${inputClass} h-32`}
-                    >
-                      {mesasDisponibles.map((r) => (
-                        <option key={r.id} value={r.id}>
-                          {r.nombre} ({r.capacidad}p)
-                        </option>
-                      ))}
-                    </select>
+              {modo === "slot" ? (
+                <>
+                  {servicios && servicios.length > 0 && (
+                    <div>
+                      <label className={labelClass}>Servicio</label>
+                      <select
+                        name="tipo_servicio_id"
+                        defaultValue={reserva?.tipo_servicio_id || ""}
+                        required
+                        className={inputClass}
+                      >
+                        <option value="" disabled>Selecciona un servicio</option>
+                        {servicios.map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.nombre} ({s.duracion_minutos} min)
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   )}
-                  {usaTurnos && zonaActiva && hora && mesasDisponibles.length === 0 && (
-                    <p className="text-xs text-status-occupied mt-1">
-                      No quedan mesas libres en {zonaActiva} a esa hora.
-                    </p>
+
+                  {recursos && recursos.length > 0 && (
+                    <div>
+                      <label className={labelClass}>Atendido por (Empleado)</label>
+                      <select
+                        name="recurso_id"
+                        defaultValue={reserva?.recurso_id || ""}
+                        required
+                        className={inputClass}
+                      >
+                        <option value="" disabled>Selecciona un profesional</option>
+                        {recursos.map((r) => (
+                          <option key={r.id} value={r.id}>
+                            {r.nombre}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   )}
-                </div>
+                </>
+              ) : (
+                <>
+                  {usaTurnos && (
+                    <>
+                      <div>
+                        <label className={labelClass}>Turno</label>
+                        <div className="flex gap-2 mt-1">
+                          {turnos.map((turno) => (
+                            <BotonOpcion
+                              key={turno.nombre}
+                              activo={turnoActivo === turno.nombre}
+                              onClick={() => manejarClicTurno(turno)}
+                            >
+                              {turno.nombre}
+                            </BotonOpcion>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className={labelClass}>Hora</label>
+                        <input
+                          type="hidden"
+                          name="hora"
+                          value={hora ? `${hora}:00` : ""}
+                          required
+                        />
+                        <input
+                          type="time"
+                          value={hora}
+                          onChange={(e) => setHora(e.target.value)}
+                          disabled={!turnoSeleccionado}
+                          min={turnoSeleccionado?.inicio?.slice(0, 5)}
+                          max={turnoSeleccionado?.fin?.slice(0, 5)}
+                          className={inputClass}
+                        />
+                      </div>
+
+                      {zonas.length > 1 && (
+                        <div>
+                          <label className={labelClass}>Zona</label>
+                          <div className="flex gap-2 mt-1">
+                            {zonas.map((zona) => (
+                              <BotonOpcion
+                                key={zona}
+                                activo={zonaActiva === zona}
+                                onClick={() => setZonaActiva(zona)}
+                              >
+                                {zona}
+                              </BotonOpcion>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  <div>
+                    <label className={labelClass}>Personas</label>
+                    <input
+                      type="number"
+                      name="personas"
+                      min="1"
+                      defaultValue={reserva?.personas || ""}
+                      className={inputClass}
+                    />
+                  </div>
+
+                  {recursos && recursos.length > 0 && (
+                    <div>
+                      <label className={labelClass}>Mesas</label>
+                      <select
+                        key={zonaActiva || "sin-zona"}
+                        name="recurso_ids"
+                        multiple
+                        defaultValue={mesasAsignadasInicial}
+                        className={`${inputClass} h-28`}
+                      >
+                        {mesasDisponibles.map((r) => (
+                          <option key={r.id} value={r.id}>
+                            {r.nombre} ({r.capacidad}p)
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </>
               )}
 
               {error && <p className="text-sm text-status-occupied">{error}</p>}
