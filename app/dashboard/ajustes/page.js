@@ -1,13 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { getNegocioActual } from "@/lib/negocio";
 import SeccionEmpleados from "@/components/ajustes/SeccionEmpleados";
-import SeccionTiposServicio from "@/components/ajustes/SeccionTiposServicio";
-import SeccionNombreNegocio from "@/components/ajustes/SeccionNombreNegocio";
+import AjustesForm from "@/components/AjustesForm";
 
 export default async function AjustesPage() {
   const supabase = createClient();
   const { negocioId, negocio } = await getNegocioActual(supabase);
-  const modo = negocio?.config_capacidad?.modo ?? "slot";
 
   const [{ data: recursos }, { data: servicios }] = await Promise.all([
     supabase
@@ -31,9 +29,16 @@ export default async function AjustesPage() {
         </p>
       </div>
 
-      <SeccionNombreNegocio negocio={negocio} />
+      {/* Formulario general de nombre y servicios del negocio */}
+      <AjustesForm
+        negocio={negocio}
+        turnos={[]}
+        zonas={[]}
+        recursos={[]}
+        servicios={servicios || []}
+      />
 
-      {/* Sección 1: Empleados */}
+      {/* Personal / Estilistas */}
       <SeccionEmpleados
         items={recursos || []}
         titulo="Empleados / Personal"
@@ -41,16 +46,13 @@ export default async function AjustesPage() {
         tipo="empleado"
       />
 
-      {/* Sección 2: Tocadores / Sillas / Equipamiento */}
+      {/* Equipamiento / Tocadores / Sillas */}
       <SeccionEmpleados
         items={recursos || []}
         titulo="Recursos Físicos (Sillas / Tocadores)"
         placeholder="Ej: Silla 1, Tocador Principal..."
         tipo="silla"
       />
-
-      {/* Sección 3: Servicios */}
-      <SeccionTiposServicio servicios={servicios || []} />
     </div>
   );
 }
