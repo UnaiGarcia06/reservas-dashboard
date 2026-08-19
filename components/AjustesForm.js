@@ -14,6 +14,7 @@ import {
   crearRecurso,
   actualizarRecurso,
   toggleRecursoActivo,
+  eliminarRecurso,
   crearTipoServicio,
   actualizarTipoServicio,
   toggleTipoServicioActivo,
@@ -183,6 +184,12 @@ export default function AjustesForm({ negocio, zonas, recursos, turnos, tiposSer
 
   async function manejarToggleRecursoActivo(id, activoActual) {
     await toggleRecursoActivo(id, !activoActual);
+  }
+
+  async function manejarEliminarRecurso(id) {
+    setMensajeRecurso(null);
+    const resultado = await eliminarRecurso(id);
+    if (resultado?.error) setMensajeRecurso(resultado.error);
   }
 
   // ---------- Tipos de servicio ----------
@@ -417,6 +424,7 @@ export default function AjustesForm({ negocio, zonas, recursos, turnos, tiposSer
                       onCancelar={() => setEditandoRecursoId(null)}
                       onGuardar={(formData) => manejarActualizarRecurso(recurso.id, formData)}
                       onToggle={() => manejarToggleRecursoActivo(recurso.id, recurso.activo)}
+                      onEliminar={() => manejarEliminarRecurso(recurso.id)}
                     />
                   ))}
                   {mesasDeZona.length === 0 && (
@@ -477,6 +485,7 @@ export default function AjustesForm({ negocio, zonas, recursos, turnos, tiposSer
                     onCancelar={() => setEditandoRecursoId(null)}
                     onGuardar={(formData) => manejarActualizarRecurso(recurso.id, formData)}
                     onToggle={() => manejarToggleRecursoActivo(recurso.id, recurso.activo)}
+                    onEliminar={() => manejarEliminarRecurso(recurso.id)}
                   />
                 ))}
               </div>
@@ -656,7 +665,7 @@ export default function AjustesForm({ negocio, zonas, recursos, turnos, tiposSer
   );
 }
 
-function FilaRecurso({ recurso, zonas, editando, onEditar, onCancelar, onGuardar, onToggle }) {
+function FilaRecurso({ recurso, zonas, editando, onEditar, onCancelar, onGuardar, onToggle, onEliminar }) {
   if (editando) {
     return (
       <form action={onGuardar} className="flex items-center gap-2">
@@ -695,8 +704,11 @@ function FilaRecurso({ recurso, zonas, editando, onEditar, onCancelar, onGuardar
       <button onClick={onEditar} className={enlaceSutil}>
         Editar
       </button>
-      <button onClick={onToggle} className={enlacePeligro}>
+      <button onClick={onToggle} className={enlaceSutil}>
         {recurso.activo ? "Desactivar" : "Activar"}
+      </button>
+      <button onClick={onEliminar} className={enlacePeligro}>
+        Eliminar
       </button>
     </div>
   );
