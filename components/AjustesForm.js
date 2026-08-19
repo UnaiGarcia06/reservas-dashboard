@@ -506,6 +506,7 @@ export default function AjustesForm({ negocio, zonas, recursos, turnos, tiposSer
             {creandoZona ? "..." : "Añadir zona"}
           </button>
         </form>
+        {mensajeRecurso && <p className="text-xs text-status-occupied mt-2">{mensajeRecurso}</p>}
         {mensajeZona && <p className="text-xs text-ink-muted mt-2">{mensajeZona}</p>}
       </Seccion>
 
