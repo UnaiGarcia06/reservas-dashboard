@@ -1,11 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { getNegocioActual } from "@/lib/negocio";
 import { obtenerTurnos } from "@/lib/turnosPorNegocio";
-import SeccionNombreNegocio from "@/components/ajustes/SeccionNombreNegocio";
-import SeccionTurnos from "@/components/ajustes/SeccionTurnos";
-import SeccionZonasMesas from "@/components/ajustes/SeccionZonasMesas";
+import AjustesForm from "@/components/AjustesForm";
 import SeccionEmpleados from "@/components/ajustes/SeccionEmpleados";
-import SeccionTiposServicio from "@/components/ajustes/SeccionTiposServicio";
 
 export default async function AjustesPage() {
   const supabase = createClient();
@@ -43,23 +40,26 @@ export default async function AjustesPage() {
         </p>
       </div>
 
-      <SeccionNombreNegocio negocio={negocio} />
-
-      {/* Turnos solo para Restaurantes */}
-      {modo === "turno" && <SeccionTurnos turnos={turnos} />}
-
-      {/* Muestra Empleados o Mesas según el modo */}
       {modo === "slot" ? (
-        <SeccionEmpleados empleados={recursos || []} />
+        <>
+          <AjustesForm
+            negocio={negocio}
+            turnos={[]}
+            zonas={[]}
+            recursos={[]}
+            servicios={servicios || []}
+          />
+          <SeccionEmpleados empleados={recursos || []} />
+        </>
       ) : (
-        <SeccionZonasMesas
+        <AjustesForm
+          negocio={negocio}
+          turnos={turnos}
           zonas={zonas || []}
           recursos={recursos || []}
+          servicios={servicios || []}
         />
       )}
-
-      {/* Tipos de servicio */}
-      <SeccionTiposServicio servicios={servicios || []} />
     </div>
   );
 }
