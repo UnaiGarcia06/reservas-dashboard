@@ -3,7 +3,6 @@ import { createClient } from "@/lib/supabase/server";
 import { getNegocioActual } from "@/lib/negocio";
 import ReservationRow from "@/components/ReservationRow";
 import ReservationModal from "@/components/ReservationModal";
-import ReservationModalSlot from "@/components/reservasSlot";
 import GroupLabel from "@/components/GroupLabel";
 import DashboardSummary from "@/components/DashboardSummary";
 import Button from "@/components/Button";
@@ -97,9 +96,9 @@ export default async function DashboardPage({ searchParams }) {
       <div>
         <div className="flex items-start justify-between mb-1">
           <h1 className="text-2xl font-semibold text-ink">Calendario de Reservas</h1>
-          <ReservationModalSlot
-            empleados={empleados || []}
-            servicios={servicios || []}
+          <ReservationModal
+            modo={modo}
+            recursos={empleados || []}
             trigger={<Button>+ Nueva reserva</Button>}
           />
         </div>
@@ -125,7 +124,7 @@ export default async function DashboardPage({ searchParams }) {
     );
   }
 
-  // ---------- Modo "turno" (restaurante) — sin cambios ----------
+  // ---------- Modo "turno" (restaurante) ----------
   const turnos = await obtenerTurnos(negocioId);
 
   const { data: recursos } = await supabase
