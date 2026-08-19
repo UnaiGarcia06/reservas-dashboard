@@ -4,6 +4,7 @@ import { useState } from "react";
 import Button from "@/components/Button";
 import { useToast } from "@/components/ToastProvider";
 import { createClient } from "@/lib/supabase/client";
+import { eliminarRecurso } from "@/lib/actions/negocio";
 
 const inputClass =
   "border border-surface-border rounded-btn px-3 py-1.5 text-sm bg-surface-card text-ink focus:outline-none focus:ring-1 focus:ring-brand";
@@ -18,6 +19,8 @@ export default function SeccionEmpleados({
   const [editandoId, setEditandoId] = useState(null);
   const [nombreEdit, setNombreEdit] = useState("");
   const [cargando, setCargando] = useState(false);
+  const [confirmandoEliminarId, setConfirmandoEliminarId] = useState(null);
+  const [eliminandoId, setEliminandoId] = useState(null);
   const { mostrarToast } = useToast();
   const supabase = createClient();
 
@@ -83,6 +86,20 @@ export default function SeccionEmpleados({
     }
   }
 
+  async function handleEliminar(id) {
+    setEliminandoId(id);
+    const resultado = await eliminarRecurso(id);
+    setEliminandoId(null);
+    setConfirmandoEliminarId(null);
+
+    if (resultado?.error) {
+      mostrarToast(resultado.error, "error");
+    } else {
+      mostrarToast("Eliminado correctamente.", "exito");
+      window.location.reload();
+    }
+  }
+
   return (
     <div className="bg-surface-card border border-surface-border rounded-card p-5 space-y-4">
       <h2 className="text-base font-semibold text-ink">{titulo}</h2>
@@ -138,6 +155,33 @@ export default function SeccionEmpleados({
                 >
                   {item.activo ? "Desactivar" : "Activar"}
                 </button>
+                {confirmandoEliminarId === item.id ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => handleEliminar(item.id)}
+                      disabled={eliminandoId === item.id}
+                      className="text-status-occupied hover:underline font-medium"
+                    >
+                      {eliminandoId === item.id ? "..." : "Confirmar"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmandoEliminarId(null)}
+                      className="text-ink-muted hover:underline"
+                    >
+                      No
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmandoEliminarId(item.id)}
+                    className="text-status-occupied hover:underline"
+                  >
+                    Eliminar
+                  </button>
+                )}
               </div>
             )}
           </div>
