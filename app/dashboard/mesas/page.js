@@ -36,7 +36,7 @@ export default async function MesasPage({ searchParams }) {
 
   const turnoDefecto = usaTurnos
     ? fecha === hoy
-      ? turnoDeHora(horaActualHHMM(), turnos)
+      ? turnoDeHora(horaActualHHMM(), turnos) || turnos[0].nombre
       : turnos[0].nombre
     : null;
 
