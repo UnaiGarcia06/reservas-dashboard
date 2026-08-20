@@ -97,7 +97,8 @@ export default async function MesasPage({ searchParams }) {
     .from("recursos")
     .select("id, nombre, zona, capacidad")
     .eq("negocio_id", negocioId)
-    .eq("activo", true);
+    .eq("activo", true)
+    .neq("tipo", "empleado");
 
   const { data: citas } = await supabase
     .from("citas")
