@@ -7,6 +7,16 @@ import CapacityBar from "@/components/CapacityBar";
 import FiltroFecha from "@/components/FiltroFecha";
 import TabsTurno from "@/components/TabsTurno";
 
+const DIA_KEYS_POR_INDICE = [
+  "domingo",
+  "lunes",
+  "martes",
+  "miercoles",
+  "jueves",
+  "viernes",
+  "sabado",
+];
+
 function formatearFechaLarga(fechaISO) {
   const fecha = new Date(fechaISO + "T00:00:00");
   return fecha.toLocaleDateString("es-ES", {
@@ -23,6 +33,37 @@ function horaActualHHMM() {
   ).padStart(2, "0")}`;
 }
 
+function diaKeyDeFecha(fechaISO) {
+  const fecha = new Date(fechaISO + "T00:00:00");
+  return DIA_KEYS_POR_INDICE[fecha.getDay()];
+}
+
+// Devuelve solo los turnos que la configuración de horario marca como
+// abiertos para esa fecha concreta (ej: domingo -> solo "comida").
+// Si no hay datos de horario para ese día, se asume que todos los
+// turnos están disponibles (comportamiento anterior, por seguridad).
+function turnosAbiertosEnFecha(fechaISO, turnos, horario) {
+  const diaKey = diaKeyDeFecha(fechaISO);
+  const datosDia = horario?.[diaKey];
+
+  if (Array.isArray(datosDia)) {
+    // Array vacío = día cerrado del todo. Array con datos no debería darse,
+    // pero por seguridad no filtramos si no está vacío.
+    return datosDia.length === 0 ? [] : turnos;
+  }
+
+  if (datosDia && typeof datosDia === "object") {
+    const keysAbiertos = Object.keys(datosDia);
+    const filtrados = turnos.filter((t) =>
+      keysAbiertos.includes(t.nombre.toLowerCase())
+    );
+    return filtrados.length > 0 ? filtrados : turnos;
+  }
+
+  // Sin información de horario para ese día: no restringimos.
+  return turnos;
+}
+
 export default async function MesasPage({ searchParams }) {
   const supabase = createClient();
   const { negocioId, negocio } = await getNegocioActual(supabase);
@@ -34,9 +75,15 @@ export default async function MesasPage({ searchParams }) {
   const hoy = new Date().toISOString().slice(0, 10);
   const fecha = searchParams?.fecha || hoy;
 
+  const turnosAbiertos = usaTurnos
+    ? turnosAbiertosEnFecha(fecha, turnos, negocio?.horario)
+    : [];
+
   const turnoDefecto = usaTurnos
-    ? fecha === hoy
-      ? turnoDeHora(horaActualHHMM(), turnos) || turnos[0].nombre
+    ? turnosAbiertos.length > 0
+      ? fecha === hoy
+        ? turnoDeHora(horaActualHHMM(), turnosAbiertos) || turnosAbiertos[0].nombre
+        : turnosAbiertos[0].nombre
       : turnos[0].nombre
     : null;
 
