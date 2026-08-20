@@ -5,6 +5,7 @@ import AjustesForm from "@/components/AjustesForm";
 import SeccionEmpleados from "@/components/ajustes/SeccionEmpleados";
 import SeccionServicios from "@/components/ajustes/SeccionServicios";
 import SeccionCalendarioRestaurante from "@/components/ajustes/SeccionCalendarioRestaurante";
+import SeccionHorarioSlot from "@/components/ajustes/SeccionHorarioSlot";
 
 export default async function AjustesPage() {
   const supabase = createClient();
@@ -82,6 +83,14 @@ export default async function AjustesPage() {
               placeholder="Ej: Silla 1, Tocador Principal..."
               tipo="silla"
             />
+
+            <div className="md:col-span-2">
+              <SeccionHorarioSlot
+                negocioId={negocioId}
+                configInicial={negocio?.calendarios_excepciones}
+                horarioInicial={negocio?.horario}
+              />
+            </div>
           </>
         ) : (
           /* VISTA PARA RESTAURANTES / NEGOCIOS POR TURNO */
