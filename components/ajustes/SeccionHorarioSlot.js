@@ -37,9 +37,9 @@ export default function SeccionHorarioSlot({
   configInicial,
   horarioInicial,
 }) {
-  const [diasCerrados, setDiasCerrados] = useState(
-    configInicial?.dias_semanales_cerrados || []
-  );
+  // Ya no se edita desde aquí, pero lo conservamos tal cual estaba guardado
+  // para no perder ese dato al guardar (por si se usa en otro sitio).
+  const diasCerradosGuardados = configInicial?.dias_semanales_cerrados || [];
   const [nuevaFecha, setNuevaFecha] = useState("");
   const [tipoExcepcion, setTipoExcepcion] = useState("cerrado"); // "cerrado" u "abierto"
   const [fechasEspeciales, setFechasEspeciales] = useState(
@@ -49,14 +49,6 @@ export default function SeccionHorarioSlot({
     construirHorarioInicial(horarioInicial)
   );
   const [guardando, setGuardando] = useState(false);
-
-  const toggleDiaSemana = (diaId) => {
-    if (diasCerrados.includes(diaId)) {
-      setDiasCerrados(diasCerrados.filter((d) => d !== diaId));
-    } else {
-      setDiasCerrados([...diasCerrados, diaId]);
-    }
-  };
 
   const toggleAbiertoDia = (diaKey) => {
     setHorarioPorDia((prev) => {
@@ -128,10 +120,6 @@ export default function SeccionHorarioSlot({
   const construirHorarioFinal = () => {
     const horarioFinal = {};
     DIAS_SEMANA.forEach((dia) => {
-      if (diasCerrados.includes(dia.id)) {
-        horarioFinal[dia.key] = { abierto: false, franjas: [] };
-        return;
-      }
       const config = horarioPorDia[dia.key];
       const franjasValidas = (config?.franjas || []).filter((f) => f[0] && f[1]);
       horarioFinal[dia.key] = {
@@ -148,7 +136,7 @@ export default function SeccionHorarioSlot({
       const horarioFinal = construirHorarioFinal();
       const [resExcepciones, resHorario] = await Promise.all([
         actualizarCalendarioExcepciones(negocioId, {
-          dias_semanales_cerrados: diasCerrados,
+          dias_semanales_cerrados: diasCerradosGuardados,
           fechas_especiales: fechasEspeciales,
         }),
         actualizarHorarioSlot(negocioId, horarioFinal),
@@ -187,44 +175,18 @@ export default function SeccionHorarioSlot({
         </button>
       </div>
 
-      {/* Días habituales de cierre semanal */}
-      <div>
-        <label className="block text-xs font-semibold text-ink-muted uppercase mb-2">
-          Días habituales de cierre semanal
-        </label>
-        <div className="flex flex-wrap gap-2">
-          {DIAS_SEMANA.map((dia) => {
-            const estaCerrado = diasCerrados.includes(dia.id);
-            return (
-              <button
-                key={dia.id}
-                type="button"
-                onClick={() => toggleDiaSemana(dia.id)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
-                  estaCerrado
-                    ? "bg-red-500 text-white border-red-600"
-                    : "bg-surface text-ink border-border hover:bg-border/30"
-                }`}
-              >
-                {dia.label} {estaCerrado ? "(Cerrado)" : ""}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
       {/* Horario semanal por franjas (permite horario partido) */}
-      <div className="pt-2 border-t border-border/60">
+      <div>
         <label className="block text-xs font-semibold text-ink-muted uppercase mb-2">
           Horario semanal
         </label>
         <p className="text-xs text-ink-muted mb-3">
           Marca los días que abres y añade una o varias franjas horarias. Útil para horario
-          partido, como mañanas y tardes por separado.
+          partido, como mañanas y tardes por separado. Los días que dejes en "Cerrado" no
+          admitirán reservas.
         </p>
         <div className="space-y-3">
           {DIAS_SEMANA.map((dia) => {
-            const cerradoCompleto = diasCerrados.includes(dia.id);
             const configDia = horarioPorDia[dia.key] || { abierto: false, franjas: [] };
 
             return (
@@ -236,65 +198,59 @@ export default function SeccionHorarioSlot({
                   {dia.label}
                 </span>
 
-                {cerradoCompleto ? (
-                  <span className="text-xs text-ink-muted italic pt-1.5">
-                    Cerrado todo el día
-                  </span>
-                ) : (
-                  <div className="flex-1 space-y-2">
-                    <button
-                      type="button"
-                      onClick={() => toggleAbiertoDia(dia.key)}
-                      className={`px-2.5 py-1 text-xs font-medium rounded-md border transition-colors ${
-                        configDia.abierto
-                          ? "bg-emerald-500 text-white border-emerald-600"
-                          : "bg-surface text-ink-muted border-border hover:bg-border/30"
-                      }`}
-                    >
-                      {configDia.abierto ? "Abierto" : "Cerrado"}
-                    </button>
+                <div className="flex-1 space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => toggleAbiertoDia(dia.key)}
+                    className={`px-2.5 py-1 text-xs font-medium rounded-md border transition-colors ${
+                      configDia.abierto
+                        ? "bg-emerald-500 text-white border-emerald-600"
+                        : "bg-surface text-ink-muted border-border hover:bg-border/30"
+                    }`}
+                  >
+                    {configDia.abierto ? "Abierto" : "Cerrado"}
+                  </button>
 
-                    {configDia.abierto && (
-                      <div className="space-y-1.5">
-                        {configDia.franjas.map((franja, idx) => (
-                          <div key={idx} className="flex items-center gap-2">
-                            <input
-                              type="time"
-                              value={franja[0]}
-                              onChange={(e) =>
-                                actualizarFranja(dia.key, idx, "inicio", e.target.value)
-                              }
-                              className="px-2 py-1 text-sm border border-border rounded-lg outline-none focus:border-accent"
-                            />
-                            <span className="text-xs text-ink-muted">a</span>
-                            <input
-                              type="time"
-                              value={franja[1]}
-                              onChange={(e) =>
-                                actualizarFranja(dia.key, idx, "fin", e.target.value)
-                              }
-                              className="px-2 py-1 text-sm border border-border rounded-lg outline-none focus:border-accent"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => eliminarFranja(dia.key, idx)}
-                              className="text-xs text-red-500 hover:underline ml-1"
-                            >
-                              Quitar
-                            </button>
-                          </div>
-                        ))}
-                        <button
-                          type="button"
-                          onClick={() => agregarFranja(dia.key)}
-                          className="text-xs text-ink-muted underline hover:text-ink"
-                        >
-                          + Añadir franja horaria
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
+                  {configDia.abierto && (
+                    <div className="space-y-1.5">
+                      {configDia.franjas.map((franja, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <input
+                            type="time"
+                            value={franja[0]}
+                            onChange={(e) =>
+                              actualizarFranja(dia.key, idx, "inicio", e.target.value)
+                            }
+                            className="px-2 py-1 text-sm border border-border rounded-lg outline-none focus:border-accent"
+                          />
+                          <span className="text-xs text-ink-muted">a</span>
+                          <input
+                            type="time"
+                            value={franja[1]}
+                            onChange={(e) =>
+                              actualizarFranja(dia.key, idx, "fin", e.target.value)
+                            }
+                            className="px-2 py-1 text-sm border border-border rounded-lg outline-none focus:border-accent"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => eliminarFranja(dia.key, idx)}
+                            className="text-xs text-red-500 hover:underline ml-1"
+                          >
+                            Quitar
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => agregarFranja(dia.key)}
+                        className="text-xs text-ink-muted underline hover:text-ink"
+                      >
+                        + Añadir franja horaria
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             );
           })}
