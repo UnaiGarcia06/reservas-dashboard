@@ -7,6 +7,10 @@ import CapacityBar from "@/components/CapacityBar";
 import FiltroFecha from "@/components/FiltroFecha";
 import TabsTurno from "@/components/TabsTurno";
 
+// Forzamos renderizado dinámico en cada petición: esta página depende de
+// la hora y fecha reales del momento, así que no debe servirse cacheada.
+export const dynamic = "force-dynamic";
+
 const DIA_KEYS_POR_INDICE = [
   "domingo",
   "lunes",
@@ -47,8 +51,6 @@ function turnosAbiertosEnFecha(fechaISO, turnos, horario) {
   const datosDia = horario?.[diaKey];
 
   if (Array.isArray(datosDia)) {
-    // Array vacío = día cerrado del todo. Array con datos no debería darse,
-    // pero por seguridad no filtramos si no está vacío.
     return datosDia.length === 0 ? [] : turnos;
   }
 
@@ -60,7 +62,6 @@ function turnosAbiertosEnFecha(fechaISO, turnos, horario) {
     return filtrados.length > 0 ? filtrados : turnos;
   }
 
-  // Sin información de horario para ese día: no restringimos.
   return turnos;
 }
 
@@ -79,18 +80,26 @@ export default async function MesasPage({ searchParams }) {
     ? turnosAbiertosEnFecha(fecha, turnos, negocio?.horario)
     : [];
 
+  // turnoDeHora() devuelve textos "comodín" ("Otro horario", "Reservas")
+  // cuando la hora actual no cae dentro de ningún turno real. Esos valores
+  // NO son nombres de turno válidos, así que hay que descartarlos
+  // explícitamente en vez de confiar en un simple `||`.
+  const nombresTurnosAbiertos = turnosAbiertos.map((t) => t.nombre);
+  const turnoPorHoraActual = turnoDeHora(horaActualHHMM(), turnosAbiertos);
+  const horaActualCaeEnTurno = nombresTurnosAbiertos.includes(turnoPorHoraActual);
+
   const turnoDefecto = usaTurnos
     ? turnosAbiertos.length > 0
-      ? fecha === hoy
-        ? turnoDeHora(horaActualHHMM(), turnosAbiertos) || turnosAbiertos[0].nombre
+      ? fecha === hoy && horaActualCaeEnTurno
+        ? turnoPorHoraActual
         : turnosAbiertos[0].nombre
-      : turnos[0].nombre
+      : turnos[0]?.nombre
     : null;
 
   const turnoActivo = usaTurnos
-    ? searchParams?.turno && turnos.some((t) => t.nombre === searchParams.turno)
-      ? searchParams.turno
-      : turnoDefecto
+    ? (searchParams?.turno && turnos.some((t) => t.nombre === searchParams.turno)
+        ? searchParams.turno
+        : turnoDefecto) || turnos[0]?.nombre
     : null;
 
   const { data: recursos } = await supabase
