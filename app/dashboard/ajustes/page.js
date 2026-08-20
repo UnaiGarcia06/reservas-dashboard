@@ -36,7 +36,7 @@ export default async function AjustesPage() {
     ]);
 
   return (
-    <div className="max-w-2xl space-y-6 pb-12">
+    <div className="max-w-6xl space-y-6 pb-12">
       <div>
         <h1 className="text-2xl font-semibold text-ink">Ajustes del negocio</h1>
         <p className="text-ink-muted text-sm mt-1">
@@ -46,68 +46,72 @@ export default async function AjustesPage() {
         </p>
       </div>
 
-      {modo === "slot" ? (
-        /* VISTA PARA PELUQUERÍAS / SERVICIOS POR SLOT */
-        <>
-          <div className="bg-white p-6 rounded-xl border border-border shadow-sm space-y-3">
-            <h2 className="text-lg font-medium text-ink">Datos generales</h2>
-            <div>
-              <label className="block text-xs font-semibold text-ink-muted uppercase mb-1">
-                Nombre del negocio
-              </label>
-              <input
-                type="text"
-                readOnly
-                value={negocio?.nombre || ""}
-                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-surface text-ink cursor-not-allowed"
-              />
+      {/* Grid de 2 columnas en escritorio, 1 columna en móvil.
+          items-start evita que las tarjetas se estiren a la altura de la más alta de su fila. */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+        {modo === "slot" ? (
+          /* VISTA PARA PELUQUERÍAS / SERVICIOS POR SLOT */
+          <>
+            <div className="bg-white p-6 rounded-xl border border-border shadow-sm space-y-3">
+              <h2 className="text-lg font-medium text-ink">Datos generales</h2>
+              <div>
+                <label className="block text-xs font-semibold text-ink-muted uppercase mb-1">
+                  Nombre del negocio
+                </label>
+                <input
+                  type="text"
+                  readOnly
+                  value={negocio?.nombre || ""}
+                  className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-surface text-ink cursor-not-allowed"
+                />
+              </div>
             </div>
-          </div>
 
-          <SeccionServicios servicios={servicios || []} negocioId={negocioId} />
+            <SeccionServicios servicios={servicios || []} negocioId={negocioId} />
 
-          <SeccionEmpleados
-            items={recursos || []}
-            titulo="Empleados / Personal"
-            placeholder="Nombre del estilista/profesional..."
-            tipo="empleado"
-          />
+            <SeccionEmpleados
+              items={recursos || []}
+              titulo="Empleados / Personal"
+              placeholder="Nombre del estilista/profesional..."
+              tipo="empleado"
+            />
 
-          <SeccionEmpleados
-            items={recursos || []}
-            titulo="Recursos Físicos (Sillas / Tocadores)"
-            placeholder="Ej: Silla 1, Tocador Principal..."
-            tipo="silla"
-          />
-        </>
-      ) : (
-        /* VISTA PARA RESTAURANTES / NEGOCIOS POR TURNO */
-        <>
-          <AjustesForm
-            negocio={negocio}
-            turnos={turnos}
-            zonas={zonas || []}
-            recursos={(recursos || []).filter(
-              (r) => (r.tipo ?? "mesa") !== "empleado"
-            )}
-          />
+            <SeccionEmpleados
+              items={recursos || []}
+              titulo="Recursos Físicos (Sillas / Tocadores)"
+              placeholder="Ej: Silla 1, Tocador Principal..."
+              tipo="silla"
+            />
+          </>
+        ) : (
+          /* VISTA PARA RESTAURANTES / NEGOCIOS POR TURNO */
+          <>
+            <AjustesForm
+              negocio={negocio}
+              turnos={turnos}
+              zonas={zonas || []}
+              recursos={(recursos || []).filter(
+                (r) => (r.tipo ?? "mesa") !== "empleado"
+              )}
+            />
 
-          <SeccionEmpleados
-            items={recursos || []}
-            titulo="Empleados / Personal"
-            placeholder="Nombre del empleado..."
-            tipo="empleado"
-          />
+            <SeccionEmpleados
+              items={recursos || []}
+              titulo="Empleados / Personal"
+              placeholder="Nombre del empleado..."
+              tipo="empleado"
+            />
 
-          {/* Módulo intuitivo de gestión de días de cierre/excepciones */}
-          <SeccionCalendarioRestaurante
-            negocioId={negocioId}
-            configInicial={negocio?.calendarios_excepciones}
-            horarioInicial={negocio?.horario}
-            turnos={turnos}
-          />
-        </>
-      )}
+            {/* Módulo intuitivo de gestión de días de cierre/excepciones */}
+            <SeccionCalendarioRestaurante
+              negocioId={negocioId}
+              configInicial={negocio?.calendarios_excepciones}
+              horarioInicial={negocio?.horario}
+              turnos={turnos}
+            />
+          </>
+        )}
+      </div>
     </div>
   );
 }

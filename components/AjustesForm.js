@@ -190,7 +190,7 @@ export default function AjustesForm({ negocio, zonas, recursos, turnos }) {
   }
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <>
       {/* Datos generales */}
       <Seccion titulo="Datos generales">
         <form action={manejarGuardarNombre} className="flex items-end gap-3">
@@ -545,7 +545,7 @@ export default function AjustesForm({ negocio, zonas, recursos, turnos }) {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
