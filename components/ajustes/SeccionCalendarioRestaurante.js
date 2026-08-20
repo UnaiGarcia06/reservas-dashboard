@@ -1,19 +1,40 @@
 "use client";
 
 import { useState } from "react";
-import { actualizarCalendarioExcepciones } from "@/lib/actions/negocio";
+import {
+  actualizarCalendarioExcepciones,
+  actualizarHorarioTurnos,
+} from "@/lib/actions/negocio";
 
 const DIAS_SEMANA = [
-  { id: 1, label: "Lunes" },
-  { id: 2, label: "Martes" },
-  { id: 3, label: "Miércoles" },
-  { id: 4, label: "Jueves" },
-  { id: 5, label: "Viernes" },
-  { id: 6, label: "Sábado" },
-  { id: 0, label: "Domingo" },
+  { id: 1, label: "Lunes", key: "lunes" },
+  { id: 2, label: "Martes", key: "martes" },
+  { id: 3, label: "Miércoles", key: "miercoles" },
+  { id: 4, label: "Jueves", key: "jueves" },
+  { id: 5, label: "Viernes", key: "viernes" },
+  { id: 6, label: "Sábado", key: "sabado" },
+  { id: 0, label: "Domingo", key: "domingo" },
 ];
 
-export default function SeccionCalendarioRestaurante({ negocioId, configInicial }) {
+function construirTurnosIniciales(horarioInicial) {
+  const inicial = {};
+  DIAS_SEMANA.forEach((dia) => {
+    const datosDia = horarioInicial?.[dia.key];
+    let abiertos = [];
+    if (datosDia && typeof datosDia === "object" && !Array.isArray(datosDia)) {
+      abiertos = Object.keys(datosDia);
+    }
+    inicial[dia.key] = abiertos;
+  });
+  return inicial;
+}
+
+export default function SeccionCalendarioRestaurante({
+  negocioId,
+  configInicial,
+  horarioInicial,
+  turnos = [],
+}) {
   const [diasCerrados, setDiasCerrados] = useState(
     configInicial?.dias_semanales_cerrados || []
   );
@@ -21,6 +42,9 @@ export default function SeccionCalendarioRestaurante({ negocioId, configInicial 
   const [tipoExcepcion, setTipoExcepcion] = useState("cerrado"); // "cerrado" u "abierto"
   const [fechasEspeciales, setFechasEspeciales] = useState(
     configInicial?.fechas_especiales || []
+  );
+  const [turnosPorDia, setTurnosPorDia] = useState(
+    construirTurnosIniciales(horarioInicial)
   );
   const [guardando, setGuardando] = useState(false);
 
@@ -30,6 +54,20 @@ export default function SeccionCalendarioRestaurante({ negocioId, configInicial 
     } else {
       setDiasCerrados([...diasCerrados, diaId]);
     }
+  };
+
+  const toggleTurnoDia = (diaKey, turnoNombre) => {
+    const turnoKey = turnoNombre.toLowerCase();
+    setTurnosPorDia((prev) => {
+      const abiertos = prev[diaKey] || [];
+      const yaAbierto = abiertos.includes(turnoKey);
+      return {
+        ...prev,
+        [diaKey]: yaAbierto
+          ? abiertos.filter((t) => t !== turnoKey)
+          : [...abiertos, turnoKey],
+      };
+    });
   };
 
   const agregarFechaEspecial = (e) => {
@@ -53,13 +91,53 @@ export default function SeccionCalendarioRestaurante({ negocioId, configInicial 
     );
   };
 
+  const construirHorarioFinal = () => {
+    const horarioFinal = {};
+    DIAS_SEMANA.forEach((dia) => {
+      if (diasCerrados.includes(dia.id)) {
+        horarioFinal[dia.key] = [];
+        return;
+      }
+      const abiertos = turnosPorDia[dia.key] || [];
+      if (abiertos.length === 0) {
+        horarioFinal[dia.key] = [];
+        return;
+      }
+      const objTurnos = {};
+      abiertos.forEach((turnoKey) => {
+        const turno = turnos.find((t) => t.nombre.toLowerCase() === turnoKey);
+        if (turno) {
+          objTurnos[turnoKey] = [
+            (turno.inicio || "").slice(0, 5),
+            (turno.fin || "").slice(0, 5),
+          ];
+        }
+      });
+      horarioFinal[dia.key] = objTurnos;
+    });
+    return horarioFinal;
+  };
+
   const handleGuardar = async () => {
     setGuardando(true);
     try {
-      await actualizarCalendarioExcepciones(negocioId, {
-        dias_semanales_cerrados: diasCerrados,
-        fechas_especiales: fechasEspeciales,
-      });
+      const horarioFinal = construirHorarioFinal();
+      const [resExcepciones, resHorario] = await Promise.all([
+        actualizarCalendarioExcepciones(negocioId, {
+          dias_semanales_cerrados: diasCerrados,
+          fechas_especiales: fechasEspeciales,
+        }),
+        actualizarHorarioTurnos(negocioId, horarioFinal),
+      ]);
+
+      if (resExcepciones?.error || resHorario?.error) {
+        alert(
+          "Error al guardar: " +
+            (resExcepciones?.error || resHorario?.error)
+        );
+        return;
+      }
+
       alert("Calendario guardado correctamente");
     } catch (err) {
       alert("Error al guardar el calendario");
@@ -111,6 +189,58 @@ export default function SeccionCalendarioRestaurante({ negocioId, configInicial 
           })}
         </div>
       </div>
+
+      {/* Cierre parcial por turno (ej: domingo solo comida) */}
+      {turnos.length > 0 && (
+        <div className="pt-2 border-t border-border/60">
+          <label className="block text-xs font-semibold text-ink-muted uppercase mb-2">
+            Servicios activos por día (Comida / Cena)
+          </label>
+          <p className="text-xs text-ink-muted mb-3">
+            Marca los turnos que el negocio ofrece cada día. Útil para días con horario reducido, como abrir solo a comidas.
+          </p>
+          <div className="space-y-1.5">
+            {DIAS_SEMANA.map((dia) => {
+              const cerradoCompleto = diasCerrados.includes(dia.id);
+              return (
+                <div key={dia.id} className="flex items-center gap-3 py-1">
+                  <span className="text-xs font-medium text-ink w-20 shrink-0">
+                    {dia.label}
+                  </span>
+                  {cerradoCompleto ? (
+                    <span className="text-xs text-ink-muted italic">
+                      Cerrado todo el día
+                    </span>
+                  ) : (
+                    <div className="flex gap-2 flex-wrap">
+                      {turnos.map((turno) => {
+                        const turnoKey = turno.nombre.toLowerCase();
+                        const abierto = (turnosPorDia[dia.key] || []).includes(
+                          turnoKey
+                        );
+                        return (
+                          <button
+                            key={turno.id}
+                            type="button"
+                            onClick={() => toggleTurnoDia(dia.key, turno.nombre)}
+                            className={`px-2.5 py-1 text-xs font-medium rounded-md border transition-colors ${
+                              abierto
+                                ? "bg-emerald-500 text-white border-emerald-600"
+                                : "bg-surface text-ink-muted border-border hover:bg-border/30"
+                            }`}
+                          >
+                            {turno.nombre}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Fechas festivas / aperturas especiales */}
       <div className="space-y-3 pt-2 border-t border-border/60">

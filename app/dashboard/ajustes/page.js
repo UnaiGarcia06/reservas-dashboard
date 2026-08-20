@@ -103,6 +103,8 @@ export default async function AjustesPage() {
           <SeccionCalendarioRestaurante
             negocioId={negocioId}
             configInicial={negocio?.calendarios_excepciones}
+            horarioInicial={negocio?.horario}
+            turnos={turnos}
           />
         </>
       )}
