@@ -5,6 +5,7 @@ import {
   actualizarCalendarioExcepciones,
   actualizarHorarioSlot,
 } from "@/lib/actions/negocio";
+import { useToast } from "@/components/ToastProvider";
 
 const DIAS_SEMANA = [
   { id: 1, label: "Lunes", key: "lunes" },
@@ -49,6 +50,7 @@ export default function SeccionHorarioSlot({
     construirHorarioInicial(horarioInicial)
   );
   const [guardando, setGuardando] = useState(false);
+  const { mostrarToast } = useToast();
 
   const toggleAbiertoDia = (diaKey) => {
     setHorarioPorDia((prev) => {
@@ -143,15 +145,16 @@ export default function SeccionHorarioSlot({
       ]);
 
       if (resExcepciones?.error || resHorario?.error) {
-        alert(
-          "Error al guardar: " + (resExcepciones?.error || resHorario?.error)
+        mostrarToast(
+          "Error al guardar: " + (resExcepciones?.error || resHorario?.error),
+          "error"
         );
         return;
       }
 
-      alert("Horario guardado correctamente");
+      mostrarToast("Horario guardado correctamente");
     } catch (err) {
-      alert("Error al guardar el horario");
+      mostrarToast("Error al guardar el horario", "error");
     } finally {
       setGuardando(false);
     }

@@ -5,6 +5,7 @@ import {
   actualizarCalendarioExcepciones,
   actualizarHorarioTurnos,
 } from "@/lib/actions/negocio";
+import { useToast } from "@/components/ToastProvider";
 
 const DIAS_SEMANA = [
   { id: 1, label: "Lunes", key: "lunes" },
@@ -47,6 +48,7 @@ export default function SeccionCalendarioRestaurante({
     construirTurnosIniciales(horarioInicial)
   );
   const [guardando, setGuardando] = useState(false);
+  const { mostrarToast } = useToast();
 
   const toggleDiaSemana = (diaId) => {
     if (diasCerrados.includes(diaId)) {
@@ -131,16 +133,17 @@ export default function SeccionCalendarioRestaurante({
       ]);
 
       if (resExcepciones?.error || resHorario?.error) {
-        alert(
+        mostrarToast(
           "Error al guardar: " +
-            (resExcepciones?.error || resHorario?.error)
+            (resExcepciones?.error || resHorario?.error),
+          "error"
         );
         return;
       }
 
-      alert("Calendario guardado correctamente");
+      mostrarToast("Calendario guardado correctamente");
     } catch (err) {
-      alert("Error al guardar el calendario");
+      mostrarToast("Error al guardar el calendario", "error");
     } finally {
       setGuardando(false);
     }
